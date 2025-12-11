@@ -1,0 +1,1058 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Authentication & User Management
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  organizationMember OrganizationMember[]
+  assignedTasks      TaskAssignment[]
+  createdTasks       Task[]               @relation("CreatedByUser")
+  updatedTasks       Task[]               @relation("UpdatedByUser")
+  createdPolicies    Policy[]             @relation("CreatedByUser")
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  meetingAttendees   MeetingAttendee[]
+  comments           Comment[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  AUDITOR
+  VIEWER
+}
+
+// ============================================
+// Organization & Multi-tenancy
+// ============================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  industry    String?
+  size        String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members              OrganizationMember[]
+  projects             Project[]
+  policies             Policy[]
+  configurations       Configuration[]
+  vendors              Vendor[]
+  trainingPrograms     TrainingProgram[]
+  riskAssessments      RiskAssessment[]
+  incidentResponses    IncidentResponse[]
+  subscriptionTier     String               @default("free")
+  subscriptionEndsAt   DateTime?
+  complianceTargetDate DateTime?
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrgRole  @default(MEMBER)
+  title          String?
+  department     String?
+  needsCUI       Boolean  @default(false) // Does this user need CUI access?
+  joinedAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
+}
+
+// ============================================
+// Project & Roadmap Management
+// ============================================
+
+model Project {
+  id               String        @id @default(cuid())
+  organizationId   String
+  name             String
+  description      String?
+  targetCMMCLevel  CMMCLevel     @default(LEVEL_1)
+  status           ProjectStatus @default(PLANNING)
+  startDate        DateTime?
+  targetDate       DateTime?
+  completionDate   DateTime?
+  budget           Float?
+  spentBudget      Float?        @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roadmaps        Roadmap[]
+  tasks           Task[]
+  milestones      Milestone[]
+  controls        ControlInstance[]
+  evidence        Evidence[]
+  meetings        Meeting[]
+  policies        Policy[]
+  audits          Audit[]
+  riskAssessments RiskAssessment[]
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+enum CMMCLevel {
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+model Roadmap {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  description String?
+  phase       Int      @default(1)
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks      Task[]
+  milestones Milestone[]
+
+  @@index([projectId])
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  projectId   String
+  roadmapId   String?
+  name        String
+  description String?
+  dueDate     DateTime?
+  status      MilestoneStatus @default(NOT_STARTED)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roadmap  Roadmap? @relation(fields: [roadmapId], references: [id])
+  tasks    Task[]
+
+  @@index([projectId])
+  @@index([roadmapId])
+}
+
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+}
+
+// ============================================
+// Task Management (Kanban)
+// ============================================
+
+model Task {
+  id          String     @id @default(cuid())
+  projectId   String
+  roadmapId   String?
+  milestoneId String?
+  title       String
+  description String?
+  status      TaskStatus @default(BACKLOG)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?
+  startDate   DateTime?
+  estimatedHours Float?
+  actualHours    Float?
+  tags        String[]
+  order       Int        @default(0) // For Kanban ordering
+  createdById String
+  updatedById String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  project      Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  roadmap      Roadmap?           @relation(fields: [roadmapId], references: [id])
+  milestone    Milestone?         @relation(fields: [milestoneId], references: [id])
+  createdBy    User               @relation("CreatedByUser", fields: [createdById], references: [id])
+  updatedBy    User?              @relation("UpdatedByUser", fields: [updatedById], references: [id])
+  assignments  TaskAssignment[]
+  controls     ControlInstance[]
+  evidence     Evidence[]
+  dependencies TaskDependency[]   @relation("DependentTask")
+  dependents   TaskDependency[]   @relation("BlockingTask")
+  comments     Comment[]
+  aiSuggestions AIAgentSuggestion[]
+
+  @@index([projectId])
+  @@index([roadmapId])
+  @@index([status])
+  @@index([priority])
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  DONE
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model TaskAssignment {
+  id        String         @id @default(cuid())
+  taskId    String
+  userId    String
+  role      RACIRole       @default(RESPONSIBLE)
+  assignedAt DateTime      @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId, role])
+  @@index([taskId])
+  @@index([userId])
+}
+
+enum RACIRole {
+  RESPONSIBLE
+  ACCOUNTABLE
+  CONSULTED
+  INFORMED
+}
+
+model TaskDependency {
+  id            String @id @default(cuid())
+  taskId        String // The dependent task
+  dependsOnId   String // The blocking task
+  dependencyType DependencyType @default(FINISH_TO_START)
+
+  task       Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn  Task @relation("BlockingTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnId])
+  @@index([taskId])
+  @@index([dependsOnId])
+}
+
+enum DependencyType {
+  FINISH_TO_START
+  START_TO_START
+  FINISH_TO_FINISH
+  START_TO_FINISH
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+// ============================================
+// CMMC Controls & Practices
+// ============================================
+
+model CMMCControl {
+  id          String  @id // e.g., "AC.1.001"
+  domain      String  // e.g., "Access Control"
+  practice    String  @db.Text
+  level       Int     // 1, 2, or 3
+  description String  @db.Text
+  objective   String? @db.Text
+
+  instances ControlInstance[]
+
+  @@index([domain])
+  @@index([level])
+}
+
+model ControlInstance {
+  id              String        @id @default(cuid())
+  projectId       String
+  controlId       String
+  taskId          String?
+  status          ControlStatus @default(NOT_STARTED)
+  maturityScore   Int?          @default(0) // 0-5 scale
+  implementationNotes String?   @db.Text
+  gapDescription  String?       @db.Text
+  remediationPlan String?       @db.Text
+  assessedAt      DateTime?
+  assessedBy      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  project  Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  control  CMMCControl  @relation(fields: [controlId], references: [id])
+  task     Task?        @relation(fields: [taskId], references: [id])
+  evidence Evidence[]
+
+  @@unique([projectId, controlId])
+  @@index([projectId])
+  @@index([controlId])
+  @@index([status])
+}
+
+enum ControlStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  IMPLEMENTED
+  TESTING
+  COMPLIANT
+  NON_COMPLIANT
+}
+
+// ============================================
+// Evidence & Documentation
+// ============================================
+
+model Evidence {
+  id              String       @id @default(cuid())
+  projectId       String
+  controlId       String?
+  taskId          String?
+  title           String
+  description     String?
+  type            EvidenceType
+  fileUrl         String?
+  fileName        String?
+  fileSize        Int?
+  mimeType        String?
+  collectedDate   DateTime     @default(now())
+  expirationDate  DateTime?
+  status          EvidenceStatus @default(DRAFT)
+  uploadedBy      String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNotes     String?      @db.Text
+  tags            String[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  controlInstance ControlInstance? @relation(fields: [controlId], references: [id])
+  task           Task?            @relation(fields: [taskId], references: [id])
+
+  @@index([projectId])
+  @@index([controlId])
+  @@index([type])
+  @@index([status])
+}
+
+enum EvidenceType {
+  POLICY
+  PROCEDURE
+  SCREENSHOT
+  CONFIGURATION
+  LOG
+  CERTIFICATE
+  TRAINING_RECORD
+  ASSESSMENT_REPORT
+  DIAGRAM
+  OTHER
+}
+
+enum EvidenceStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+// ============================================
+// Meeting Management
+// ============================================
+
+model Meeting {
+  id              String        @id @default(cuid())
+  projectId       String
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  location        String?
+  meetingUrl      String?
+  platform        MeetingPlatform?
+  externalId      String?       // ID from Teams/Zoom/Google
+  status          MeetingStatus @default(SCHEDULED)
+  agenda          String?       @db.Text
+  transcript      String?       @db.Text
+  transcriptUrl   String?
+  recordingUrl    String?
+  aiSummary       String?       @db.Text
+  actionItems     String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attendees  MeetingAttendee[]
+
+  @@index([projectId])
+  @@index([startTime])
+  @@index([platform])
+}
+
+enum MeetingPlatform {
+  TEAMS
+  ZOOM
+  GOOGLE_MEET
+  OTHER
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model MeetingAttendee {
+  id        String   @id @default(cuid())
+  meetingId String
+  userId    String
+  status    AttendeeStatus @default(INVITED)
+  joinedAt  DateTime?
+  leftAt    DateTime?
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+  @@index([meetingId])
+  @@index([userId])
+}
+
+enum AttendeeStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+  ATTENDED
+  NO_SHOW
+}
+
+// ============================================
+// Policy Management
+// ============================================
+
+model Policy {
+  id              String       @id @default(cuid())
+  organizationId  String
+  projectId       String?
+  title           String
+  description     String?
+  content         String       @db.Text
+  version         String       @default("1.0")
+  status          PolicyStatus @default(DRAFT)
+  category        String?
+  tags            String[]
+  effectiveDate   DateTime?
+  reviewDate      DateTime?
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdById     String
+  templateId      String?
+  fileUrl         String?
+  aiGenerated     Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?      @relation(fields: [projectId], references: [id])
+  createdBy    User          @relation("CreatedByUser", fields: [createdById], references: [id])
+  template     PolicyTemplate? @relation(fields: [templateId], references: [id])
+  versions     PolicyVersion[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([status])
+}
+
+enum PolicyStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+model PolicyTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  content     String   @db.Text
+  category    String
+  cmmcLevel   Int?
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policies Policy[]
+}
+
+model PolicyVersion {
+  id        String   @id @default(cuid())
+  policyId  String
+  version   String
+  content   String   @db.Text
+  changes   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+}
+
+// ============================================
+// Network Configuration Management
+// ============================================
+
+model Configuration {
+  id              String           @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String?
+  equipmentType   EquipmentType
+  vendor          ConfigVendor
+  model           String?
+  purpose         String?
+  config          String           @db.Text
+  configHash      String? // For change detection
+  status          ConfigStatus     @default(DRAFT)
+  appliedAt       DateTime?
+  createdBy       String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  tags            String[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions     ConfigurationVersion[]
+
+  @@index([organizationId])
+  @@index([equipmentType])
+  @@index([vendor])
+}
+
+enum EquipmentType {
+  ROUTER
+  SWITCH
+  FIREWALL
+  WIRELESS_AP
+  WIRELESS_CONTROLLER
+  VPN_GATEWAY
+  IDS_IPS
+  OTHER
+}
+
+enum ConfigVendor {
+  CISCO
+  HP
+  ARUBA
+  UNIFI
+  SONICWALL
+  FORTINET
+  PALO_ALTO
+  JUNIPER
+  OTHER
+}
+
+enum ConfigStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  APPLIED
+  ARCHIVED
+}
+
+model ConfigurationVersion {
+  id              String   @id @default(cuid())
+  configurationId String
+  version         Int
+  config          String   @db.Text
+  changes         String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  configuration Configuration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+
+  @@index([configurationId])
+}
+
+// ============================================
+// AI Agents & Suggestions
+// ============================================
+
+model AIAgentSuggestion {
+  id          String     @id @default(cuid())
+  agentType   AgentType
+  taskId      String?
+  entityType  String?    // "policy", "control", "task", etc.
+  entityId    String?
+  title       String
+  content     String     @db.Text
+  confidence  Float?     // 0-1 score
+  status      SuggestionStatus @default(PENDING)
+  appliedAt   DateTime?
+  rejectedAt  DateTime?
+  feedback    String?
+  createdAt   DateTime   @default(now())
+
+  task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([agentType])
+  @@index([status])
+  @@index([taskId])
+}
+
+enum AgentType {
+  ORCHESTRATOR
+  POLICY_DRAFTING
+  C3PAO_EXPERT
+  CONFIGURATION
+  CUI_ANALYST
+  EVIDENCE_COLLECTION
+  GAP_ANALYSIS
+  TRAINING
+  VENDOR_ASSESSMENT
+  INCIDENT_RESPONSE
+  RISK_ASSESSMENT
+  AUDIT_PREP
+  COMPLIANCE_MONITORING
+  CHANGE_MANAGEMENT
+}
+
+enum SuggestionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  APPLIED
+}
+
+// ============================================
+// Audits & Assessments
+// ============================================
+
+model Audit {
+  id              String      @id @default(cuid())
+  projectId       String
+  name            String
+  description     String?
+  type            AuditType   @default(C3PAO)
+  status          AuditStatus @default(SCHEDULED)
+  scheduledDate   DateTime?
+  completedDate   DateTime?
+  auditorName     String?
+  auditorOrg      String?
+  findings        String?     @db.Text
+  score           Float?
+  recommendations String?     @db.Text
+  reportUrl       String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  findings AuditFinding[]
+
+  @@index([projectId])
+  @@index([type])
+  @@index([status])
+}
+
+enum AuditType {
+  C3PAO
+  INTERNAL
+  GAP_ASSESSMENT
+  PRE_ASSESSMENT
+}
+
+enum AuditStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model AuditFinding {
+  id          String         @id @default(cuid())
+  auditId     String
+  controlId   String?
+  severity    FindingSeverity
+  title       String
+  description String         @db.Text
+  remediation String?        @db.Text
+  status      FindingStatus  @default(OPEN)
+  dueDate     DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@index([severity])
+  @@index([status])
+}
+
+enum FindingSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum FindingStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  ACCEPTED_RISK
+  FALSE_POSITIVE
+}
+
+// ============================================
+// Vendor Management
+// ============================================
+
+model Vendor {
+  id              String       @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String?
+  website         String?
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+  services        String[]
+  riskLevel       RiskLevel    @default(MEDIUM)
+  assessmentScore Float?
+  lastAssessment  DateTime?
+  nextAssessment  DateTime?
+  status          VendorStatus @default(ACTIVE)
+  notes           String?      @db.Text
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assessments  VendorAssessment[]
+
+  @@index([organizationId])
+  @@index([riskLevel])
+  @@index([status])
+}
+
+enum RiskLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_REVIEW
+  REJECTED
+}
+
+model VendorAssessment {
+  id            String   @id @default(cuid())
+  vendorId      String
+  assessedBy    String?
+  score         Float
+  questionnaire Json?
+  findings      String?  @db.Text
+  recommendations String? @db.Text
+  assessedAt    DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+}
+
+// ============================================
+// Training & Awareness
+// ============================================
+
+model TrainingProgram {
+  id              String   @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String?
+  content         String?  @db.Text
+  duration        Int?     // minutes
+  requiredFor     String[] // Role names
+  cmmcLevel       Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  completions  TrainingCompletion[]
+
+  @@index([organizationId])
+}
+
+model TrainingCompletion {
+  id          String   @id @default(cuid())
+  programId   String
+  userId      String
+  completedAt DateTime @default(now())
+  score       Float?
+  certificate String?
+
+  program TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId])
+  @@index([programId])
+  @@index([userId])
+}
+
+// ============================================
+// Risk Management
+// ============================================
+
+model RiskAssessment {
+  id              String   @id @default(cuid())
+  organizationId  String
+  projectId       String?
+  title           String
+  description     String?
+  methodology     String?
+  assessedBy      String?
+  assessedAt      DateTime @default(now())
+  nextReview      DateTime?
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id])
+  risks        Risk[]
+
+  @@index([organizationId])
+  @@index([projectId])
+}
+
+model Risk {
+  id            String         @id @default(cuid())
+  assessmentId  String
+  title         String
+  description   String         @db.Text
+  category      String?
+  likelihood    Int            // 1-5
+  impact        Int            // 1-5
+  riskScore     Int            // likelihood × impact
+  mitigation    String?        @db.Text
+  owner         String?
+  status        RiskStatus     @default(IDENTIFIED)
+  dueDate       DateTime?
+  resolvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  assessment RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@index([status])
+  @@index([riskScore])
+}
+
+enum RiskStatus {
+  IDENTIFIED
+  ANALYZING
+  MITIGATING
+  MONITORING
+  RESOLVED
+  ACCEPTED
+}
+
+// ============================================
+// Incident Response
+// ============================================
+
+model IncidentResponse {
+  id              String         @id @default(cuid())
+  organizationId  String
+  title           String
+  description     String         @db.Text
+  severity        FindingSeverity
+  status          IncidentStatus @default(NEW)
+  detectedAt      DateTime       @default(now())
+  containedAt     DateTime?
+  resolvedAt      DateTime?
+  rootCause       String?        @db.Text
+  remediation     String?        @db.Text
+  lessonsLearned  String?        @db.Text
+  reportUrl       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([severity])
+  @@index([status])
+}
+
+enum IncidentStatus {
+  NEW
+  INVESTIGATING
+  CONTAINED
+  ERADICATING
+  RECOVERING
+  RESOLVED
+  CLOSED
+}
+
+// ============================================
+// Notifications & Activity
+// ============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String   @db.Text
+  type      NotificationType
+  entityType String?
+  entityId  String?
+  read      Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_DUE
+  MEETING_SCHEDULED
+  EVIDENCE_NEEDED
+  POLICY_APPROVAL
+  AUDIT_SCHEDULED
+  FINDING_ASSIGNED
+  MENTION
+  SYSTEM
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
