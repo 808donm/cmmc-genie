@@ -53,7 +53,7 @@ CMMC Genie is a comprehensive compliance tracking application designed to help o
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Node.js
 - **Database**: PostgreSQL with Prisma ORM
-- **AI**: Anthropic Claude API, LangChain
+- **AI**: OpenAI API (GPT-4o, Assistants API)
 - **Auth**: NextAuth.js
 - **Integrations**: Microsoft Graph, Google Calendar, Zoom APIs
 

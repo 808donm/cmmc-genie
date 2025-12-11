@@ -36,10 +36,11 @@ CMMC Genie is a comprehensive compliance tracking application designed to help o
 - **RBAC**: Role-Based Access Control (Admin, Manager, User, Auditor)
 
 ### AI & Agents
-- **LLM Provider**: Anthropic Claude API (primary), OpenAI (fallback)
-- **Agent Framework**: LangChain or custom implementation
+- **LLM Provider**: OpenAI API (primary), Anthropic Claude (optional fallback)
+- **Agent Framework**: OpenAI Assistants API with custom orchestration
 - **Vector Database**: Pinecone or pgvector for RAG
 - **Document Processing**: LangChain document loaders
+- **Provider Abstraction**: Custom provider layer for easy switching between OpenAI/Anthropic
 
 ### External Integrations
 - **Calendar & Meetings**:
@@ -88,7 +89,8 @@ CMMC Genie is a comprehensive compliance tracking application designed to help o
 ```
 ┌─────────────────────────────────────┐
 │      Orchestrator Agent             │
-│  (Routes requests to specialists)   │
+│  (OpenAI GPT-4o with function calls)│
+│  Routes requests to specialists     │
 └──────────────┬──────────────────────┘
                │
        ┌───────┴────────┐
@@ -96,8 +98,18 @@ CMMC Genie is a comprehensive compliance tracking application designed to help o
 ┌──────▼─────┐   ┌─────▼──────┐
 │ Specialist │   │ Specialist │
 │  Agents    │   │   Agents   │
+│ (OpenAI    │   │ Assistants │
+│ Assistants)│   │    API)    │
 └────────────┘   └────────────┘
 ```
+
+### OpenAI Implementation Strategy
+- **Orchestrator**: GPT-4o with function calling to route to specialist agents
+- **Specialist Agents**: OpenAI Assistants API with custom instructions and tools
+- **Knowledge Base**: Vector store integration for RAG (Retrieval Augmented Generation)
+- **Provider Abstraction**: Interface layer allowing easy switch to Anthropic or other providers
+- **Streaming**: Support for real-time streaming responses
+- **Function Calling**: Structured outputs and tool use for reliable agent interactions
 
 ### Proposed AI Agents
 
@@ -436,12 +448,19 @@ CMMC Genie is a comprehensive compliance tracking application designed to help o
 
 - **Hosting**: $100-500 (Vercel Pro + database)
 - **Database**: $50-200 (managed PostgreSQL)
-- **AI APIs**: $500-5000 (usage-dependent)
+- **AI APIs (OpenAI)**: $500-5000 (usage-dependent)
+  - GPT-4o: ~$2.50/1M input tokens, ~$10/1M output tokens
+  - GPT-4 Turbo: ~$10/1M input tokens, ~$30/1M output tokens
+  - GPT-3.5 Turbo: ~$0.50/1M input tokens, ~$1.50/1M output tokens
+  - Embeddings (text-embedding-3-small): ~$0.02/1M tokens
+  - Assistants API: Same as base model + $0.20/GB/day storage
+  - Estimated: 10M tokens/month ≈ $125-400/month
 - **External APIs**: $100-300 (calendar, transcription)
 - **Storage**: $50-200 (S3/R2)
 - **Monitoring**: $50-100 (Sentry, logging)
 
 **Total**: ~$850-$6300/month depending on usage
+**Typical Medium Organization**: ~$1500-2500/month
 
 ## Next Steps
 
