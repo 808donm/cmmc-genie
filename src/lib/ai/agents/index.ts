@@ -16,6 +16,12 @@ import { CUIAnalystAgent } from "./cui-analyst";
 import { EvidenceCollectionAgent } from "./evidence-collection";
 import { GapAnalysisAgent } from "./gap-analysis";
 import { TrainingAwarenessAgent } from "./training-awareness";
+import { VendorAssessmentAgent } from "./vendor-assessment";
+import { IncidentResponseAgent } from "./incident-response";
+import { RiskAssessmentAgent } from "./risk-assessment";
+import { AuditPrepAgent } from "./audit-prep";
+import { ComplianceMonitoringAgent } from "./compliance-monitoring";
+import { ChangeManagementAgent } from "./change-management";
 
 /**
  * Agent metadata for documentation and UI
@@ -359,16 +365,29 @@ class AgentFactory {
         agent = new TrainingAwarenessAgent();
         break;
 
-      // Agents not yet implemented - will throw error
       case "VENDOR_ASSESSMENT":
+        agent = new VendorAssessmentAgent();
+        break;
+
       case "INCIDENT_RESPONSE":
+        agent = new IncidentResponseAgent();
+        break;
+
       case "RISK_ASSESSMENT":
+        agent = new RiskAssessmentAgent();
+        break;
+
       case "AUDIT_PREP":
+        agent = new AuditPrepAgent();
+        break;
+
       case "COMPLIANCE_MONITORING":
+        agent = new ComplianceMonitoringAgent();
+        break;
+
       case "CHANGE_MANAGEMENT":
-        throw new Error(
-          `Agent type ${type} is not yet implemented. Coming soon!`
-        );
+        agent = new ChangeManagementAgent();
+        break;
 
       default:
         throw new Error(`Unknown agent type: ${type}`);
@@ -399,6 +418,12 @@ class AgentFactory {
       "EVIDENCE_COLLECTION",
       "GAP_ANALYSIS",
       "TRAINING",
+      "VENDOR_ASSESSMENT",
+      "INCIDENT_RESPONSE",
+      "RISK_ASSESSMENT",
+      "AUDIT_PREP",
+      "COMPLIANCE_MONITORING",
+      "CHANGE_MANAGEMENT",
     ];
   }
 
@@ -468,3 +493,9 @@ export { CUIAnalystAgent } from "./cui-analyst";
 export { EvidenceCollectionAgent } from "./evidence-collection";
 export { GapAnalysisAgent } from "./gap-analysis";
 export { TrainingAwarenessAgent } from "./training-awareness";
+export { VendorAssessmentAgent } from "./vendor-assessment";
+export { IncidentResponseAgent } from "./incident-response";
+export { RiskAssessmentAgent } from "./risk-assessment";
+export { AuditPrepAgent } from "./audit-prep";
+export { ComplianceMonitoringAgent } from "./compliance-monitoring";
+export { ChangeManagementAgent } from "./change-management";
