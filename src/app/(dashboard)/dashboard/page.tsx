@@ -44,8 +44,10 @@ export default async function DashboardPage() {
     }),
     prisma.meeting.findMany({
       where: {
-        organizationId: organizationId || "",
-        scheduledAt: { gte: new Date() },
+        project: {
+          organizationId: organizationId || "",
+        },
+        startTime: { gte: new Date() },
       },
       include: {
         attendees: {
@@ -55,7 +57,7 @@ export default async function DashboardPage() {
         },
       },
       take: 5,
-      orderBy: { scheduledAt: "asc" },
+      orderBy: { startTime: "asc" },
     }),
   ]);
 
@@ -249,7 +251,7 @@ export default async function DashboardPage() {
                   <div>
                     <h3 className="font-medium text-slate-900">{meeting.title}</h3>
                     <p className="text-sm text-slate-500">
-                      {new Date(meeting.scheduledAt).toLocaleString()} ·{" "}
+                      {new Date(meeting.startTime).toLocaleString()} ·{" "}
                       {meeting.attendees.length} attendees
                     </p>
                   </div>
