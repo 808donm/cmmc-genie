@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import type { Meeting, MeetingAttendee, User } from "@prisma/client";
 
 export default async function CalendarPage() {
   const session = await auth();
@@ -28,7 +29,7 @@ export default async function CalendarPage() {
   });
 
   // Convert to calendar events
-  const events = meetings.map((meeting) => ({
+  const events = meetings.map((meeting: Meeting & { attendees: (MeetingAttendee & { user: User })[] }) => ({
     id: meeting.id,
     title: meeting.title,
     start: meeting.scheduledAt,
