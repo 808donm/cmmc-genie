@@ -12,7 +12,7 @@ export default async function Home() {
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="CMMC Genie Logo"
               width={250}
               height={250}
