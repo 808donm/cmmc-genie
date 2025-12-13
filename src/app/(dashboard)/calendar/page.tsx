@@ -11,10 +11,12 @@ export default async function CalendarPage() {
   const session = await auth();
   const organizationId = session?.user.activeOrganization;
 
-  // Fetch meetings for the calendar
+  // Fetch meetings for the calendar (through projects)
   const meetings = await prisma.meeting.findMany({
     where: {
-      organizationId: organizationId || "",
+      project: {
+        organizationId: organizationId || "",
+      },
     },
     include: {
       attendees: {
@@ -24,7 +26,7 @@ export default async function CalendarPage() {
       },
     },
     orderBy: {
-      scheduledAt: "asc",
+      startTime: "asc",
     },
   });
 
@@ -32,8 +34,8 @@ export default async function CalendarPage() {
   const events = meetings.map((meeting: Meeting & { attendees: (MeetingAttendee & { user: User })[] }) => ({
     id: meeting.id,
     title: meeting.title,
-    start: meeting.scheduledAt,
-    end: meeting.endAt || new Date(meeting.scheduledAt.getTime() + 60 * 60 * 1000),
+    start: meeting.startTime,
+    end: meeting.endTime,
     description: meeting.agenda || undefined,
     attendees: meeting.attendees.map((a) => a.user.name).filter(Boolean) as string[],
     platform: meeting.platform,

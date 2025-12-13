@@ -11,12 +11,14 @@ export default async function MeetingsPage() {
   const session = await auth();
   const organizationId = session?.user.activeOrganization;
 
-  // Fetch meetings
+  // Fetch meetings (through projects)
   const [upcomingMeetings, pastMeetings] = await Promise.all([
     prisma.meeting.findMany({
       where: {
-        organizationId: organizationId || "",
-        scheduledAt: { gte: new Date() },
+        project: {
+          organizationId: organizationId || "",
+        },
+        startTime: { gte: new Date() },
       },
       include: {
         attendees: {
@@ -25,13 +27,15 @@ export default async function MeetingsPage() {
           },
         },
       },
-      orderBy: { scheduledAt: "asc" },
+      orderBy: { startTime: "asc" },
       take: 10,
     }),
     prisma.meeting.findMany({
       where: {
-        organizationId: organizationId || "",
-        scheduledAt: { lt: new Date() },
+        project: {
+          organizationId: organizationId || "",
+        },
+        startTime: { lt: new Date() },
       },
       include: {
         attendees: {
@@ -40,7 +44,7 @@ export default async function MeetingsPage() {
           },
         },
       },
-      orderBy: { scheduledAt: "desc" },
+      orderBy: { startTime: "desc" },
       take: 10,
     }),
   ]);
@@ -156,7 +160,7 @@ export default async function MeetingsPage() {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {formatDateTime(meeting.scheduledAt)} ·{" "}
+                        {formatDateTime(meeting.startTime)} ·{" "}
                         {meeting.attendees.length} attendees
                       </p>
                       {meeting.agenda && (
@@ -221,7 +225,7 @@ export default async function MeetingsPage() {
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {formatDateTime(meeting.scheduledAt)}
+                        {formatDateTime(meeting.startTime)}
                       </p>
                     </div>
                   </div>
