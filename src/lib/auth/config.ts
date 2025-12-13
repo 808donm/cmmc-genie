@@ -90,10 +90,17 @@ export const authConfig = {
           },
         });
 
-        // Create personal organization
+        // Create personal organization with slug
+        const baseSlug = (user.name || user.email || "user")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        const slug = `${baseSlug}-${Date.now()}`;
+
         const org = await prisma.organization.create({
           data: {
             name: `${user.name || user.email}'s Organization`,
+            slug,
             members: {
               create: {
                 userId: newUser.id,
