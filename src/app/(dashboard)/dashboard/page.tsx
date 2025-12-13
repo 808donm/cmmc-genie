@@ -162,7 +162,7 @@ export default async function DashboardPage() {
                     <div>
                       <h3 className="font-medium text-slate-900">{project.name}</h3>
                       <p className="text-sm text-slate-500">
-                        {project._count.tasks} tasks · Target: Level {project.targetLevel}
+                        {project._count.tasks} tasks · Target: {project.targetCMMCLevel.replace("_", " ")}
                       </p>
                     </div>
                     <Button asChild variant="ghost" size="sm">
