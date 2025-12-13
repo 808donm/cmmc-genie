@@ -745,14 +745,14 @@ model Audit {
   completedDate   DateTime?
   auditorName     String?
   auditorOrg      String?
-  findings        String?     @db.Text
+  findingsSummary String?     @db.Text
   score           Float?
   recommendations String?     @db.Text
   reportUrl       String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   findings AuditFinding[]
 
   @@index([projectId])
