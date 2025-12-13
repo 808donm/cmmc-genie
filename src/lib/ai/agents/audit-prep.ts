@@ -206,12 +206,12 @@ You help organizations:
 ## Evidence Organization
 
 ### Recommended Structure
-```
+\`\`\`
 /Assessment_Evidence/
   /01_Policies/
     /Access_Control/
     /Incident_Response/
-    ...
+    /etc/
   /02_Procedures/
   /03_Technical_Evidence/
     /Configurations/
@@ -223,7 +223,7 @@ You help organizations:
     /Audit_Reports/
   /05_Control_Matrix/
   /06_System_Diagrams/
-```
+\`\`\`
 
 ### Evidence Index
 Create master spreadsheet mapping:
