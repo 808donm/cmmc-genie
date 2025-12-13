@@ -1,4 +1,10 @@
-export default function Home() {
+import { auth } from "@/lib/auth/auth";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+export default async function Home() {
+  const session = await auth();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm">
@@ -9,6 +15,19 @@ export default function Home() {
           <p className="text-xl mb-8 text-muted-foreground">
             Your AI-powered companion for CMMC compliance journey
           </p>
+
+          {/* Call to Action */}
+          <div className="mb-12">
+            {session ? (
+              <Button asChild size="lg" className="text-lg px-8 py-6">
+                <Link href="/dashboard">Go to Dashboard →</Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="text-lg px-8 py-6">
+                <Link href="/auth/signin">Get Started →</Link>
+              </Button>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
             <div className="border border-border rounded-lg p-6 hover:border-primary transition-colors">
@@ -56,11 +75,7 @@ export default function Home() {
 
           <div className="mt-12">
             <p className="text-sm text-muted-foreground">
-              Currently in development. Check out the{" "}
-              <a href="https://github.com/yourusername/cmmc-genie" className="text-primary hover:underline">
-                GitHub repository
-              </a>
-              {" "}for updates.
+              Built with Next.js 14, TypeScript, Prisma, and OpenAI
             </p>
           </div>
         </div>
