@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth/auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 
-export default async function Home() {
-  const session = await auth();
+export default function Home() {
+  // Remove auth check for now to avoid database dependency on landing page
+  const session = null;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
