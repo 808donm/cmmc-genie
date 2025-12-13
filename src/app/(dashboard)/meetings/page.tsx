@@ -53,6 +53,7 @@ export default async function MeetingsPage() {
     TEAMS: "bg-purple-100 text-purple-700",
     ZOOM: "bg-blue-100 text-blue-700",
     GOOGLE_MEET: "bg-green-100 text-green-700",
+    OTHER: "bg-slate-100 text-slate-700",
   };
 
   return (
