@@ -13,6 +13,7 @@ import {
   FileText,
   Settings,
   BarChart3,
+  Bot,
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Tasks", href: "/tasks", icon: Users },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Meetings", href: "/meetings", icon: MessageSquare },
+  { name: "AI Agents", href: "/agents", icon: Bot },
   { name: "Compliance", href: "/compliance", icon: Shield },
   { name: "Policies", href: "/policies", icon: FileText },
   { name: "Reports", href: "/reports", icon: BarChart3 },
