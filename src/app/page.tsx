@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth/auth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function Home() {
   const session = await auth();
@@ -9,8 +10,17 @@ export default async function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm">
         <div className="text-center">
+          <div className="mb-6 flex justify-center">
+            <Image
+              src="/logo.svg"
+              alt="CMMC Genie Logo"
+              width={250}
+              height={250}
+              priority
+            />
+          </div>
           <h1 className="text-6xl font-bold mb-4">
-            CMMC Genie 🧞
+            CMMC Genie
           </h1>
           <p className="text-xl mb-8 text-muted-foreground">
             Your AI-powered companion for CMMC compliance journey

@@ -1,0 +1,48 @@
+<svg width="250" height="250" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="125" cy="125" r="120" fill="#4F46E5" opacity="0.1"/>
+
+  <!-- Genie Lamp -->
+  <g transform="translate(125, 125)">
+    <!-- Lamp Body -->
+    <ellipse cx="0" cy="20" rx="45" ry="15" fill="#F59E0B"/>
+    <path d="M -45 20 Q -45 5 -30 -10 L 30 -10 Q 45 5 45 20 Z" fill="#FBBF24"/>
+
+    <!-- Lamp Base -->
+    <ellipse cx="0" cy="45" rx="25" ry="8" fill="#D97706"/>
+    <path d="M -25 45 L -35 55 L 35 55 L 25 45 Z" fill="#B45309"/>
+
+    <!-- Lamp Handle -->
+    <path d="M 45 10 Q 60 10 60 -5 Q 60 -20 50 -25"
+          stroke="#F59E0B"
+          stroke-width="6"
+          fill="none"
+          stroke-linecap="round"/>
+
+    <!-- Magic Sparkles -->
+    <g fill="#4F46E5">
+      <circle cx="-60" cy="-40" r="3"/>
+      <circle cx="-50" cy="-60" r="2"/>
+      <circle cx="-70" cy="-55" r="2.5"/>
+      <circle cx="60" cy="-50" r="3"/>
+      <circle cx="70" cy="-40" r="2"/>
+      <circle cx="55" cy="-70" r="2.5"/>
+    </g>
+
+    <!-- Stars -->
+    <text x="-65" y="-35" font-size="20" fill="#4F46E5">★</text>
+    <text x="55" y="-65" font-size="16" fill="#4F46E5">★</text>
+    <text x="-55" y="-70" font-size="14" fill="#4F46E5">★</text>
+  </g>
+
+  <!-- Shield (CMMC Reference) -->
+  <path d="M 125 180 L 105 190 L 105 210 Q 105 225 125 235 Q 145 225 145 210 L 145 190 Z"
+        fill="#10B981"
+        opacity="0.8"/>
+  <text x="125" y="215"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="bold"
+        fill="white"
+        text-anchor="middle">C</text>
+</svg>
