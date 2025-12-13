@@ -1,3 +1,12 @@
+// Import Prisma types for local use
+import type {
+  Task,
+  Milestone,
+  RACIRole,
+  MeetingPlatform,
+  AgentType,
+} from "@prisma/client";
+
 // Re-export Prisma types for convenience
 export type {
   User,
