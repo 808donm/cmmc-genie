@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import type { MeetingPlatform } from "@prisma/client";
 
 export interface CalendarEvent {
   id: string;
@@ -14,7 +15,7 @@ export interface CalendarEvent {
   end: Date;
   description?: string;
   attendees?: string[];
-  platform?: "TEAMS" | "ZOOM" | "GOOGLE_MEET" | null;
+  platform?: MeetingPlatform | null;
   meetingUrl?: string | null;
 }
 
@@ -23,10 +24,11 @@ interface CalendarViewProps {
   onEventClick?: (event: CalendarEvent) => void;
 }
 
-const platformColors = {
+const platformColors: Record<MeetingPlatform, string> = {
   TEAMS: "bg-purple-500",
   ZOOM: "bg-blue-500",
   GOOGLE_MEET: "bg-green-500",
+  OTHER: "bg-slate-500",
 };
 
 export function CalendarView({ events, onEventClick }: CalendarViewProps) {
