@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     prisma.project.findMany({
       where: { organizationId: organizationId || "" },
       include: {
-        roadmap: {
+        roadmaps: {
           include: {
             milestones: true,
           },
