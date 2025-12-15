@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Clock, AlertCircle, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, AlertCircle, TrendingUp, FolderKanban, MessageSquare, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const organizationId = session?.user.activeOrganization;
 
   // Fetch dashboard data
-  const [projects, tasks, upcomingMeetings] = await Promise.all([
+  const [projects, tasks, upcomingMeetings, allControls, controlInstances] = await Promise.all([
     prisma.project.findMany({
       where: { organizationId: organizationId || "" },
       include: {
@@ -59,6 +59,17 @@ export default async function DashboardPage() {
       take: 5,
       orderBy: { startTime: "asc" },
     }),
+    prisma.cMMCControl.count(),
+    prisma.controlInstance.findMany({
+      where: {
+        project: {
+          organizationId: organizationId || "",
+        },
+      },
+      select: {
+        status: true,
+      },
+    }),
   ]);
 
   // Calculate stats
@@ -71,6 +82,13 @@ export default async function DashboardPage() {
   });
   const overdueTasks = tasks.filter((task) => task.dueDate && task.dueDate < new Date()).length;
 
+  // Calculate compliance progress
+  const totalControls = allControls || 110; // Default to 110 CMMC controls
+  const compliantControls = controlInstances.filter((c) => c.status === "COMPLIANT").length;
+  const inProgressControls = controlInstances.filter((c) => c.status === "IN_PROGRESS").length;
+  const notStartedControls = totalControls - controlInstances.length;
+  const compliancePercentage = totalControls > 0 ? (compliantControls / totalControls) * 100 : 0;
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -80,6 +98,83 @@ export default async function DashboardPage() {
           Welcome back, {session?.user.name}! Here&apos;s your CMMC compliance overview.
         </p>
       </div>
+
+      {/* Compliance Progress */}
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                CMMC Compliance Journey
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Your progress across all 110 CMMC controls
+              </CardDescription>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-blue-600">{compliancePercentage.toFixed(1)}%</div>
+              <p className="text-sm text-slate-600">Complete</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Progress bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-slate-700">
+                {compliantControls} of {totalControls} controls compliant
+              </span>
+              <span className="text-slate-600">
+                {inProgressControls} in progress · {notStartedControls} not started
+              </span>
+            </div>
+            <div className="h-4 w-full overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full flex">
+                <div
+                  className="bg-green-500 transition-all duration-500"
+                  style={{ width: `${(compliantControls / totalControls) * 100}%` }}
+                />
+                <div
+                  className="bg-yellow-500 transition-all duration-500"
+                  style={{ width: `${(inProgressControls / totalControls) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-green-500" />
+              <span className="text-slate-700">
+                <span className="font-medium">{compliantControls}</span> Compliant
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-yellow-500" />
+              <span className="text-slate-700">
+                <span className="font-medium">{inProgressControls}</span> In Progress
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-slate-200" />
+              <span className="text-slate-700">
+                <span className="font-medium">{notStartedControls}</span> Not Started
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button asChild variant="default">
+              <Link href="/compliance">View Compliance Dashboard</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/evidence">Evidence Vault</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -267,6 +362,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-
-// Add missing icon import
-import { FolderKanban, MessageSquare } from "lucide-react";
