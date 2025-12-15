@@ -86,7 +86,7 @@ export const authConfig = {
     },
     async jwt({ token, user, account, profile }) {
       // After first sign-in, create/join organization
-      if (user && account && profile) {
+      if (user && user.id && account && profile) {
         const existingMembership = await prisma.organizationMember.findFirst({
           where: { userId: user.id },
         });
