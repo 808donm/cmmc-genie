@@ -57,7 +57,7 @@ export default function AgentsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-blue-600" />
-            <CardTitle>AI Assistant</CardTitle>
+            <CardTitle>The CMMC Genie</CardTitle>
           </div>
           <CardDescription>
             Ask questions about CMMC compliance, policies, configurations, and more
