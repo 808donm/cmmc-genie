@@ -22,6 +22,11 @@ export const authConfig = {
       clientId: process.env.AZURE_AD_CLIENT_ID || "",
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET || "",
       issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || "common"}/v2.0`,
+      authorization: {
+        params: {
+          scope: "openid profile email User.Read Organization.Read.All",
+        },
+      },
     }),
     // Zoom OAuth provider (custom configuration)
     {
@@ -90,18 +95,47 @@ export const authConfig = {
           // Extract organization name from OAuth provider
           let orgName = "";
           let orgSlug = "";
+          let tenantId = "";
 
-          // For Microsoft/Azure AD - use tenant organization name or domain
-          if (account.provider === "azure-ad" && profile.email) {
-            const domain = profile.email.split("@")[1];
-            // Use domain as org name (e.g., "enterprisetech.com" -> "Enterprise Tech")
-            orgName = domain
-              .split(".")[0]
-              .replace(/[-_]/g, " ")
-              .split(" ")
-              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ");
-            orgSlug = domain.split(".")[0].toLowerCase();
+          // For Microsoft/Azure AD - fetch actual organization name from Microsoft Graph
+          if (account.provider === "azure-ad" && account.access_token) {
+            try {
+              // Get tenant ID from profile or token
+              tenantId = (profile as any).tid || "";
+
+              // Fetch organization details from Microsoft Graph API
+              const graphResponse = await fetch("https://graph.microsoft.com/v1.0/organization", {
+                headers: {
+                  Authorization: `Bearer ${account.access_token}`,
+                },
+              });
+
+              if (graphResponse.ok) {
+                const graphData = await graphResponse.json();
+                const org = graphData.value?.[0];
+                if (org?.displayName) {
+                  orgName = org.displayName;
+                  orgSlug = org.displayName
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/^-|-$/g, "");
+                }
+              }
+            } catch (error) {
+              console.error("Failed to fetch organization from Microsoft Graph:", error);
+            }
+
+            // Fallback to domain-based naming if Graph API fails
+            if (!orgName && profile.email) {
+              const domain = profile.email.split("@")[1];
+              orgName = domain
+                .split(".")[0]
+                .replace(/[-_]/g, " ")
+                .split(" ")
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+              orgSlug = domain.split(".")[0].toLowerCase();
+            }
           }
           // For Google - use domain if not gmail
           else if (account.provider === "google" && profile.email) {
