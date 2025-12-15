@@ -14,6 +14,7 @@ import {
   Settings,
   BarChart3,
   Bot,
+  Archive,
 } from "lucide-react";
 
 const navigation = [
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Meetings", href: "/meetings", icon: MessageSquare },
   { name: "AI Agents", href: "/agents", icon: Bot },
   { name: "Compliance", href: "/compliance", icon: Shield },
+  { name: "Evidence Vault", href: "/evidence", icon: Archive },
   { name: "Policies", href: "/policies", icon: FileText },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },

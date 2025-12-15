@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Building2, User, Bell, Shield } from "lucide-react";
+import { Building2, User, Bell, Shield, AlertCircle } from "lucide-react";
+import { EditButton } from "@/components/settings/edit-button";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -50,7 +50,7 @@ export default async function SettingsPage() {
                 <p className="mt-1 text-sm text-slate-900">{orgMembership?.role || "N/A"}</p>
               </div>
             </div>
-            <Button variant="outline">Edit Profile</Button>
+            <EditButton label="Edit Profile" feature="Profile editing" variant="outline" />
           </CardContent>
         </Card>
 
@@ -66,10 +66,35 @@ export default async function SettingsPage() {
           <CardContent className="space-y-4">
             {orgMembership ? (
               <>
+                {(!orgMembership.organization.name || orgMembership.organization.name === "") && (
+                  <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-yellow-900">Organization Name Not Set</h4>
+                        <p className="mt-1 text-sm text-yellow-700">
+                          Please set your organization name to continue. This will be used throughout the application.
+                        </p>
+                        <div className="mt-3">
+                          <EditButton
+                            label="Set Organization Name"
+                            feature="Organization name editing"
+                            variant="default"
+                            size="sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-slate-700">Organization Name</label>
-                    <p className="mt-1 text-sm text-slate-900">{orgMembership.organization.name}</p>
+                    <p className="mt-1 text-sm text-slate-900">
+                      {orgMembership.organization.name || (
+                        <span className="text-slate-400 italic">Not set</span>
+                      )}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700">Industry</label>
@@ -90,7 +115,7 @@ export default async function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <Button variant="outline">Manage Organization</Button>
+                <EditButton label="Manage Organization" feature="Organization management" variant="outline" />
               </>
             ) : (
               <p className="text-sm text-slate-600">No organization membership found.</p>
@@ -114,21 +139,21 @@ export default async function SettingsPage() {
                   <p className="text-sm font-medium text-slate-900">Task Assignments</p>
                   <p className="text-sm text-slate-600">Get notified when tasks are assigned to you</p>
                 </div>
-                <Button variant="outline" size="sm">Enable</Button>
+                <EditButton label="Enable" feature="Task assignment notifications" size="sm" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-900">Meeting Reminders</p>
                   <p className="text-sm text-slate-600">Receive reminders for upcoming meetings</p>
                 </div>
-                <Button variant="outline" size="sm">Enable</Button>
+                <EditButton label="Enable" feature="Meeting reminder notifications" size="sm" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-900">Compliance Updates</p>
                   <p className="text-sm text-slate-600">Get updates on compliance status changes</p>
                 </div>
-                <Button variant="outline" size="sm">Enable</Button>
+                <EditButton label="Enable" feature="Compliance update notifications" size="sm" />
               </div>
             </div>
           </CardContent>
@@ -150,14 +175,14 @@ export default async function SettingsPage() {
                   <p className="text-sm font-medium text-slate-900">Two-Factor Authentication</p>
                   <p className="text-sm text-slate-600">Add an extra layer of security to your account</p>
                 </div>
-                <Button variant="outline" size="sm">Configure</Button>
+                <EditButton label="Configure" feature="Two-factor authentication" size="sm" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-900">Active Sessions</p>
                   <p className="text-sm text-slate-600">Manage devices where you&apos;re signed in</p>
                 </div>
-                <Button variant="outline" size="sm">View</Button>
+                <EditButton label="View" feature="Active sessions management" size="sm" />
               </div>
             </div>
           </CardContent>
