@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { MainNav } from "@/components/layout/main-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import Image from "next/image";
 
 export default async function DashboardLayout({
   children,
@@ -20,8 +21,14 @@ export default async function DashboardLayout({
       <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-slate-200 bg-white">
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center border-b border-slate-200 px-6">
-            <h1 className="text-xl font-bold text-slate-900">CMMC Genie</h1>
+          <div className="flex items-center justify-center border-b border-slate-200 py-4">
+            <Image
+              src="/logo.png"
+              alt="CMMC Genie"
+              width={150}
+              height={150}
+              className="rounded-xl"
+            />
           </div>
 
           {/* Navigation */}
