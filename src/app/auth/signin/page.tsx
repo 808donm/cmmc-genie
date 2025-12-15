@@ -1,15 +1,9 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth/auth";
 import { SignInForm } from "@/components/auth/signin-form";
 import Image from "next/image";
 
-export default async function SignInPage() {
-  const session = await auth();
-
-  // If already authenticated, redirect to dashboard
-  if (session) {
-    redirect("/dashboard");
-  }
+export default function SignInPage() {
+  // Made static to avoid database dependency on page load
+  // Redirect will be handled by NextAuth after successful sign-in
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
