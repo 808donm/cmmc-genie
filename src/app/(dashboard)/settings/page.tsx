@@ -155,7 +155,7 @@ export default async function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-900">Active Sessions</p>
-                  <p className="text-sm text-slate-600">Manage devices where you're signed in</p>
+                  <p className="text-sm text-slate-600">Manage devices where you&apos;re signed in</p>
                 </div>
                 <Button variant="outline" size="sm">View</Button>
               </div>
