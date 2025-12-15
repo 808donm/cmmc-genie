@@ -28,18 +28,20 @@ export const authConfig = {
       id: "zoom",
       name: "Zoom",
       type: "oauth",
-      wellKnown: "https://zoom.us/.well-known/openid-configuration",
       authorization: {
-        params: { scope: "openid profile email" },
+        url: "https://zoom.us/oauth/authorize",
+        params: { scope: "user:read" },
       },
+      token: "https://zoom.us/oauth/token",
+      userinfo: "https://api.zoom.us/v2/users/me",
       clientId: process.env.ZOOM_CLIENT_ID || "",
       clientSecret: process.env.ZOOM_CLIENT_SECRET || "",
       profile(profile) {
         return {
-          id: profile.sub,
-          name: profile.name || `${profile.given_name} ${profile.family_name}`,
+          id: profile.id,
+          name: `${profile.first_name} ${profile.last_name}`,
           email: profile.email,
-          image: profile.picture,
+          image: profile.pic_url,
         };
       },
     },
