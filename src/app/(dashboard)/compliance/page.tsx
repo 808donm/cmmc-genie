@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/auth";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 

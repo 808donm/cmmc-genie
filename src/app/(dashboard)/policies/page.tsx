@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth/auth";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Plus } from "lucide-react";
