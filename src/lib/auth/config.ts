@@ -79,33 +79,88 @@ export const authConfig = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
-      // After first sign-in, create organization if it doesn't exist
-      if (user && account) {
-        const existingOrg = await prisma.organizationMember.findFirst({
+    async jwt({ token, user, account, profile }) {
+      // After first sign-in, create/join organization
+      if (user && account && profile) {
+        const existingMembership = await prisma.organizationMember.findFirst({
           where: { userId: user.id },
         });
 
-        if (!existingOrg) {
-          // Create personal organization with slug
-          const baseSlug = (user.name || user.email || "user")
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-|-$/g, "");
-          const slug = `${baseSlug}-${Date.now()}`;
+        if (!existingMembership) {
+          // Extract organization name from OAuth provider
+          let orgName = "";
+          let orgSlug = "";
 
-          await prisma.organization.create({
-            data: {
-              name: `${user.name || user.email}'s Organization`,
-              slug,
-              members: {
-                create: {
-                  userId: user.id,
-                  role: "ADMIN",
+          // For Microsoft/Azure AD - use tenant organization name or domain
+          if (account.provider === "azure-ad" && profile.email) {
+            const domain = profile.email.split("@")[1];
+            // Use domain as org name (e.g., "enterprisetech.com" -> "Enterprise Tech")
+            orgName = domain
+              .split(".")[0]
+              .replace(/[-_]/g, " ")
+              .split(" ")
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ");
+            orgSlug = domain.split(".")[0].toLowerCase();
+          }
+          // For Google - use domain if not gmail
+          else if (account.provider === "google" && profile.email) {
+            const domain = profile.email.split("@")[1];
+            if (domain !== "gmail.com") {
+              orgName = domain
+                .split(".")[0]
+                .replace(/[-_]/g, " ")
+                .split(" ")
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+              orgSlug = domain.split(".")[0].toLowerCase();
+            } else {
+              // Personal Gmail account - create personal org
+              orgName = `${user.name || user.email}'s Organization`;
+              orgSlug = (user.name || user.email || "user")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-|-$/g, "");
+            }
+          }
+          // For other providers - create personal org
+          else {
+            orgName = `${user.name || user.email}'s Organization`;
+            orgSlug = (user.name || user.email || "user")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "");
+          }
+
+          // Check if organization already exists (for company domains)
+          const existingOrg = await prisma.organization.findUnique({
+            where: { slug: orgSlug },
+          });
+
+          if (existingOrg) {
+            // Join existing organization
+            await prisma.organizationMember.create({
+              data: {
+                organizationId: existingOrg.id,
+                userId: user.id,
+                role: "MEMBER",
+              },
+            });
+          } else {
+            // Create new organization
+            await prisma.organization.create({
+              data: {
+                name: orgName,
+                slug: orgSlug,
+                members: {
+                  create: {
+                    userId: user.id,
+                    role: "ADMIN",
+                  },
                 },
               },
-            },
-          });
+            });
+          }
         }
       }
       return token;
