@@ -73,47 +73,42 @@ export const authConfig = {
       return session;
     },
     async signIn({ user, account }) {
+      // Allow sign-in - the adapter will handle user creation
       if (!user.email) {
         return false;
       }
-
-      // Check if user exists
-      const existingUser = await prisma.user.findUnique({
-        where: { email: user.email },
-      });
-
-      // If new user, create a personal organization
-      if (!existingUser && account) {
-        const newUser = await prisma.user.create({
-          data: {
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          },
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      // After first sign-in, create organization if it doesn't exist
+      if (user && account) {
+        const existingOrg = await prisma.organizationMember.findFirst({
+          where: { userId: user.id },
         });
 
-        // Create personal organization with slug
-        const baseSlug = (user.name || user.email || "user")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "");
-        const slug = `${baseSlug}-${Date.now()}`;
+        if (!existingOrg) {
+          // Create personal organization with slug
+          const baseSlug = (user.name || user.email || "user")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+          const slug = `${baseSlug}-${Date.now()}`;
 
-        const org = await prisma.organization.create({
-          data: {
-            name: `${user.name || user.email}'s Organization`,
-            slug,
-            members: {
-              create: {
-                userId: newUser.id,
-                role: "ADMIN",
+          await prisma.organization.create({
+            data: {
+              name: `${user.name || user.email}'s Organization`,
+              slug,
+              members: {
+                create: {
+                  userId: user.id,
+                  role: "ADMIN",
+                },
               },
             },
-          },
-        });
+          });
+        }
       }
-
-      return true;
+      return token;
     },
   },
   pages: {
