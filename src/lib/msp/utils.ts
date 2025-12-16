@@ -217,3 +217,119 @@ export async function getUserDashboardRoute(userId: string): Promise<string> {
   const isMsp = await shouldShowMspDashboard(userId);
   return isMsp ? "/msp/dashboard" : "/dashboard";
 }
+
+/**
+ * Calculate compliance progress for a client organization
+ */
+export async function getClientComplianceProgress(clientId: string): Promise<number> {
+  // Get all CMMC controls for the client
+  const controls = await prisma.cMMCControl.findMany({
+    where: {
+      organizationId: clientId,
+    },
+  });
+
+  if (controls.length === 0) return 0;
+
+  // Count completed controls (those with status IMPLEMENTED or COMPLIANT)
+  const completedControls = controls.filter(
+    (c) => c.status === "IMPLEMENTED" || c.status === "COMPLIANT"
+  );
+
+  // Calculate percentage
+  return Math.round((completedControls.length / controls.length) * 100);
+}
+
+/**
+ * Get MSP clients with enhanced data including compliance progress
+ */
+export async function getMspClientsWithProgress(mspOrganizationId: string) {
+  const clients = await getMspClients(mspOrganizationId);
+
+  // Calculate compliance progress for each client
+  const clientsWithProgress = await Promise.all(
+    clients.map(async (client) => {
+      const complianceProgress = await getClientComplianceProgress(client.id);
+
+      // Get active projects count
+      const activeProjects = await prisma.mspProject.count({
+        where: {
+          clientId: client.id,
+          status: {
+            in: ["PLANNING", "ACTIVE"],
+          },
+        },
+      });
+
+      return {
+        ...client,
+        complianceProgress,
+        activeProjects,
+      };
+    })
+  );
+
+  return clientsWithProgress;
+}
+
+/**
+ * Get MSP dashboard statistics
+ */
+export async function getMspDashboardStats(mspOrganizationId: string) {
+  const clients = await getMspClients(mspOrganizationId);
+
+  // Total active projects across all clients
+  const activeProjects = await prisma.mspProject.count({
+    where: {
+      mspOrganizationId,
+      status: {
+        in: ["PLANNING", "ACTIVE"],
+      },
+    },
+  });
+
+  // Total users across all clients
+  const totalUsers = clients.reduce((sum, client) => sum + client.members.length, 0);
+
+  // Calculate average compliance across all clients
+  const complianceScores = await Promise.all(
+    clients.map((client) => getClientComplianceProgress(client.id))
+  );
+
+  const avgCompliance =
+    complianceScores.length > 0
+      ? Math.round(complianceScores.reduce((a, b) => a + b, 0) / complianceScores.length)
+      : 0;
+
+  // Count at-risk projects
+  const atRiskProjects = await prisma.mspProject.count({
+    where: {
+      mspOrganizationId,
+      status: "AT_RISK",
+    },
+  });
+
+  // Count overdue tasks
+  const overdueTasks = await prisma.mspTask.count({
+    where: {
+      project: {
+        mspOrganizationId,
+      },
+      status: {
+        not: "COMPLETED",
+      },
+      dueDate: {
+        lt: new Date(),
+      },
+    },
+  });
+
+  return {
+    totalClients: clients.length,
+    activeProjects,
+    totalUsers,
+    avgCompliance,
+    atRiskProjects,
+    overdueTasks,
+  };
+}

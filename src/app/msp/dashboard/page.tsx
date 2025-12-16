@@ -1,6 +1,18 @@
 import { auth } from "@/lib/auth/auth";
-import { getMspOrganization, getMspClients } from "@/lib/msp/utils";
-import { Building2, Users, FolderKanban, TrendingUp } from "lucide-react";
+import {
+  getMspOrganization,
+  getMspClientsWithProgress,
+  getMspDashboardStats,
+} from "@/lib/msp/utils";
+import {
+  Building2,
+  Users,
+  FolderKanban,
+  TrendingUp,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
+import Link from "next/link";
 
 export default async function MspDashboardPage() {
   const session = await auth();
@@ -9,14 +21,8 @@ export default async function MspDashboardPage() {
   const mspOrg = await getMspOrganization(session.user.id);
   if (!mspOrg) return <div>No MSP organization found</div>;
 
-  const clients = await getMspClients(mspOrg.id);
-
-  const stats = {
-    totalClients: clients.length,
-    activeProjects: 0, // Will be calculated from projects
-    totalUsers: clients.reduce((sum, client) => sum + client.members.length, 0),
-    avgCompliance: 0, // Will be calculated from compliance data
-  };
+  const clients = await getMspClientsWithProgress(mspOrg.id);
+  const stats = await getMspDashboardStats(mspOrg.id);
 
   return (
     <div className="space-y-6">
@@ -29,7 +35,7 @@ export default async function MspDashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="rounded-lg border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-blue-100 p-3">
@@ -68,12 +74,36 @@ export default async function MspDashboardPage() {
 
         <div className="rounded-lg border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-3">
-            <div className="rounded-full bg-orange-100 p-3">
-              <TrendingUp className="h-6 w-6 text-orange-600" />
+            <div className="rounded-full bg-emerald-100 p-3">
+              <TrendingUp className="h-6 w-6 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-slate-600">Avg Compliance</p>
               <p className="text-2xl font-bold text-slate-900">{stats.avgCompliance}%</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-amber-100 p-3">
+              <AlertCircle className="h-6 w-6 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600">At Risk</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.atRiskProjects}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-red-100 p-3">
+              <Clock className="h-6 w-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-600">Overdue Tasks</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.overdueTasks}</p>
             </div>
           </div>
         </div>
@@ -99,54 +129,76 @@ export default async function MspDashboardPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {clients.map((client) => (
-              <div
-                key={client.id}
-                className="rounded-lg border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-md transition-all"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900">{client.name}</h3>
-                    {client.industry && (
-                      <p className="mt-1 text-sm text-slate-600">{client.industry}</p>
+            {clients.map((client) => {
+              // Determine progress bar color based on compliance percentage
+              const getProgressColor = (progress: number) => {
+                if (progress >= 80) return "bg-green-600";
+                if (progress >= 50) return "bg-blue-600";
+                if (progress >= 25) return "bg-amber-600";
+                return "bg-red-600";
+              };
+
+              const progressColor = getProgressColor(client.complianceProgress);
+
+              return (
+                <div
+                  key={client.id}
+                  className="rounded-lg border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-900">{client.name}</h3>
+                      {client.industry && (
+                        <p className="mt-1 text-sm text-slate-600">{client.industry}</p>
+                      )}
+                    </div>
+                    {client.complianceProgress === 100 && (
+                      <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                        Compliant
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {/* Progress Bar Placeholder */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600">Compliance Progress</span>
-                    <span className="font-medium text-slate-900">0%</span>
+                  {/* Compliance Progress Bar */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-600">Compliance Progress</span>
+                      <span className="font-medium text-slate-900">
+                        {client.complianceProgress}%
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
+                      <div
+                        className={`h-2 rounded-full ${progressColor} transition-all`}
+                        style={{ width: `${client.complianceProgress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
-                    <div className="h-2 rounded-full bg-blue-600" style={{ width: "0%" }} />
-                  </div>
-                </div>
 
-                {/* Quick Stats */}
-                <div className="mt-4 flex items-center gap-4 text-sm text-slate-600">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{client.members.length} users</span>
+                  {/* Quick Stats */}
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-slate-600">
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      <span>{client.members.length} users</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <FolderKanban className="h-4 w-4" />
+                      <span>{client.activeProjects} active</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <FolderKanban className="h-4 w-4" />
-                    <span>{client._count.projects} projects</span>
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="mt-4 pt-4 border-t border-slate-200">
-                  <a
-                    href={`/msp/clients/${client.id}`}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    View Details →
-                  </a>
+                  {/* Actions */}
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <Link
+                      href={`/msp/clients/${client.id}`}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
