@@ -15,6 +15,8 @@ interface Task {
   description: string | null;
   status: string;
   priority: string;
+  column: string;
+  position: number;
   dueDate: Date | string | null;
   assignee: {
     id: string;
