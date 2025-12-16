@@ -165,3 +165,55 @@ export async function getMspClients(mspOrganizationId: string) {
     },
   });
 }
+
+/**
+ * Get user's primary organization and determine if it's MSP or Client
+ */
+export async function getUserOrganizationType(userId: string): Promise<"MSP" | "CLIENT" | null> {
+  const membership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+    },
+    include: {
+      organization: true,
+    },
+  });
+
+  return membership?.organization.type || null;
+}
+
+/**
+ * Get user's active organization with full details
+ */
+export async function getUserActiveOrganization(userId: string) {
+  const membership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+    },
+    include: {
+      organization: true,
+    },
+    orderBy: {
+      createdAt: 'asc', // First organization they joined
+    },
+  });
+
+  return membership?.organization || null;
+}
+
+/**
+ * Check if user should see MSP dashboard (is MSP member)
+ * vs Client dashboard (is client member)
+ */
+export async function shouldShowMspDashboard(userId: string): Promise<boolean> {
+  const orgType = await getUserOrganizationType(userId);
+  return orgType === "MSP";
+}
+
+/**
+ * Get dashboard route for user based on their organization type
+ */
+export async function getUserDashboardRoute(userId: string): Promise<string> {
+  const isMsp = await shouldShowMspDashboard(userId);
+  return isMsp ? "/msp/dashboard" : "/dashboard";
+}
