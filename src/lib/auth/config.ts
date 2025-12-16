@@ -56,6 +56,16 @@ export const authConfig = {
       if (session.user) {
         session.user.id = user.id;
 
+        // Get full user data including role
+        const fullUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true },
+        });
+
+        if (fullUser) {
+          session.user.role = fullUser.role;
+        }
+
         // Get user's organization memberships
         const memberships = await prisma.organizationMember.findMany({
           where: { userId: user.id },
