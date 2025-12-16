@@ -15,6 +15,8 @@ import {
   BarChart3,
   Bot,
   Archive,
+  UserCog,
+  Mail,
 } from "lucide-react";
 
 const navigation = [
@@ -28,6 +30,8 @@ const navigation = [
   { name: "Evidence Vault", href: "/evidence", icon: Archive },
   { name: "Policies", href: "/policies", icon: FileText },
   { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Users", href: "/users", icon: UserCog },
+  { name: "Invitations", href: "/invitations", icon: Mail },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
