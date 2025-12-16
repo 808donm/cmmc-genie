@@ -2,40 +2,70 @@ import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { ComplianceControlList } from "@/components/compliance/compliance-control-list";
 
 export default async function CompliancePage() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  // Get user's organization
-  const orgMembership = await prisma.organizationMember.findFirst({
-    where: { userId: session.user.id },
-    include: { organization: true },
+  const isSuperAdmin = session?.user.role === "SUPER_ADMIN";
+  const organizationId = session?.user.activeOrganization;
+
+  // Super admins see all controls, regular users see their organization's controls
+  const orgFilter = isSuperAdmin ? {} : { organizationId: organizationId || "" };
+
+  // Get all 110 CMMC controls organized by domain
+  const allControls = await prisma.cMMCControl.findMany({
+    orderBy: [
+      { domain: "asc" },
+      { id: "asc" },
+    ],
   });
 
-  // Get compliance stats
-  const projects = orgMembership
-    ? await prisma.project.findMany({
-        where: { organizationId: orgMembership.organizationId },
-        include: {
-          controls: true,
-        },
-      })
-    : [];
+  // Group controls by domain
+  const controlsByDomain = allControls.reduce((acc, control) => {
+    if (!acc[control.domain]) {
+      acc[control.domain] = [];
+    }
+    acc[control.domain].push(control);
+    return acc;
+  }, {} as Record<string, typeof allControls>);
 
-  const totalControls = projects.reduce((sum, p) => sum + p.controls.length, 0);
-  const compliantControls = projects.reduce(
-    (sum, p) => sum + p.controls.filter((c) => c.status === "COMPLIANT").length,
-    0
-  );
-  const inProgressControls = projects.reduce(
-    (sum, p) => sum + p.controls.filter((c) => c.status === "IN_PROGRESS").length,
-    0
-  );
-  const notStartedControls = projects.reduce(
-    (sum, p) => sum + p.controls.filter((c) => c.status === "NOT_STARTED").length,
-    0
-  );
+  // Get all control instances for the organization
+  const controlInstances = await prisma.controlInstance.findMany({
+    where: {
+      project: orgFilter,
+    },
+    include: {
+      control: true,
+      evidence: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Create a map of control instances by control ID
+  const controlInstanceMap = new Map();
+  controlInstances.forEach((instance) => {
+    if (!controlInstanceMap.has(instance.controlId)) {
+      controlInstanceMap.set(instance.controlId, []);
+    }
+    controlInstanceMap.get(instance.controlId).push(instance);
+  });
+
+  // Calculate overall stats
+  const totalControls = allControls.length;
+  const compliantControls = Array.from(controlInstanceMap.values()).filter((instances) =>
+    instances.some((inst: any) => inst.status === "COMPLIANT")
+  ).length;
+  const inProgressControls = Array.from(controlInstanceMap.values()).filter((instances) =>
+    instances.some((inst: any) => inst.status === "IN_PROGRESS" || inst.status === "IMPLEMENTED" || inst.status === "TESTING")
+  ).length;
+  const notStartedControls = totalControls - compliantControls - inProgressControls;
 
   const complianceRate = totalControls > 0 ? (compliantControls / totalControls) * 100 : 0;
 
@@ -43,9 +73,9 @@ export default async function CompliancePage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Compliance Dashboard</h1>
+        <h1 className="text-3xl font-bold text-slate-900">CMMC Compliance Tracking</h1>
         <p className="mt-2 text-slate-600">
-          Track your CMMC compliance progress across all controls
+          Track all 110 CMMC controls with evidence submission and approval workflow
         </p>
       </div>
 
@@ -98,46 +128,12 @@ export default async function CompliancePage() {
         </Card>
       </div>
 
-      {/* Projects compliance breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Projects Compliance Status</CardTitle>
-          <CardDescription>Detailed compliance breakdown by project</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {projects.length === 0 ? (
-            <p className="text-sm text-slate-600">No projects found. Create a project to start tracking compliance.</p>
-          ) : (
-            <div className="space-y-4">
-              {projects.map((project) => {
-                const projectCompliant = project.controls.filter((c) => c.status === "COMPLIANT").length;
-                const projectTotal = project.controls.length;
-                const projectRate = projectTotal > 0 ? (projectCompliant / projectTotal) * 100 : 0;
-
-                return (
-                  <div key={project.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-slate-900">{project.name}</h4>
-                        <p className="text-sm text-slate-600">
-                          {project.targetCMMCLevel.replace("_", " ")} • {projectCompliant}/{projectTotal} controls
-                        </p>
-                      </div>
-                      <span className="text-sm font-semibold text-slate-900">{projectRate.toFixed(1)}%</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                      <div
-                        className="h-full bg-blue-600 transition-all"
-                        style={{ width: `${projectRate}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Controls by domain */}
+      <ComplianceControlList
+        controlsByDomain={controlsByDomain}
+        controlInstanceMap={Object.fromEntries(controlInstanceMap)}
+        organizationId={organizationId || ""}
+      />
     </div>
   );
 }
