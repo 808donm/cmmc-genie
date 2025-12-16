@@ -23,13 +23,14 @@ export default async function CompliancePage() {
   });
 
   // Group controls by domain
-  const controlsByDomain = allControls.reduce((acc, control) => {
+  type Control = typeof allControls[number];
+  const controlsByDomain = allControls.reduce((acc: Record<string, Control[]>, control: Control) => {
     if (!acc[control.domain]) {
       acc[control.domain] = [];
     }
     acc[control.domain].push(control);
     return acc;
-  }, {} as Record<string, typeof allControls>);
+  }, {} as Record<string, Control[]>);
 
   // Get all control instances for the organization
   const controlInstances = await prisma.controlInstance.findMany({
@@ -49,12 +50,13 @@ export default async function CompliancePage() {
   });
 
   // Create a map of control instances by control ID
-  const controlInstanceMap = new Map();
-  controlInstances.forEach((instance) => {
+  type ControlInstance = typeof controlInstances[number];
+  const controlInstanceMap = new Map<string, ControlInstance[]>();
+  controlInstances.forEach((instance: ControlInstance) => {
     if (!controlInstanceMap.has(instance.controlId)) {
       controlInstanceMap.set(instance.controlId, []);
     }
-    controlInstanceMap.get(instance.controlId).push(instance);
+    controlInstanceMap.get(instance.controlId)!.push(instance);
   });
 
   // Calculate overall stats

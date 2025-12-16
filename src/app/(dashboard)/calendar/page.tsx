@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import type { Meeting, MeetingAttendee, User } from "@prisma/client";
 
 export default async function CalendarPage() {
   const session = await auth();
@@ -30,14 +29,17 @@ export default async function CalendarPage() {
     },
   });
 
+  type MeetingWithAttendees = typeof meetings[number];
+  type AttendeeWithUser = MeetingWithAttendees['attendees'][number];
+
   // Convert to calendar events
-  const events = meetings.map((meeting: Meeting & { attendees: (MeetingAttendee & { user: User })[] }) => ({
+  const events = meetings.map((meeting: MeetingWithAttendees) => ({
     id: meeting.id,
     title: meeting.title,
     start: meeting.startTime,
     end: meeting.endTime,
     description: meeting.agenda || undefined,
-    attendees: meeting.attendees.map((a) => a.user.name).filter(Boolean) as string[],
+    attendees: meeting.attendees.map((a: AttendeeWithUser) => a.user.name).filter(Boolean) as string[],
     platform: meeting.platform,
     meetingUrl: meeting.meetingUrl,
   }));

@@ -35,9 +35,12 @@ export default async function EvidenceVaultPage() {
     : [];
 
   // Create a map of control evidence counts
+  type Project = typeof projects[number];
+  type ControlInstance = Project['controls'][number];
+
   const controlEvidenceMap = new Map<string, { count: number; status: string }>();
-  projects.forEach((project) => {
-    project.controls.forEach((controlInstance) => {
+  projects.forEach((project: Project) => {
+    project.controls.forEach((controlInstance: ControlInstance) => {
       const existing = controlEvidenceMap.get(controlInstance.controlId) || {
         count: 0,
         status: "NOT_STARTED",
@@ -50,19 +53,20 @@ export default async function EvidenceVaultPage() {
   });
 
   // Get total evidence count
-  const totalEvidence = projects.reduce((sum, p) => sum + p.evidence.length, 0);
+  const totalEvidence = projects.reduce((sum: number, p: Project) => sum + p.evidence.length, 0);
   const controlsWithEvidence = Array.from(controlEvidenceMap.values()).filter(
     (c) => c.count > 0
   ).length;
 
   // Group controls by domain
-  const controlsByDomain = controls.reduce((acc, control) => {
+  type Control = typeof controls[number];
+  const controlsByDomain = controls.reduce((acc: Record<string, Control[]>, control: Control) => {
     if (!acc[control.domain]) {
       acc[control.domain] = [];
     }
     acc[control.domain].push(control);
     return acc;
-  }, {} as Record<string, typeof controls>);
+  }, {} as Record<string, Control[]>);
 
   return (
     <div className="space-y-6">
@@ -137,18 +141,18 @@ export default async function EvidenceVaultPage() {
       </Card>
 
       {/* Controls list by domain */}
-      {Object.entries(controlsByDomain).map(([domain, domainControls]) => (
+      {(Object.entries(controlsByDomain) as [string, Control[]][]).map(([domain, domainControls]) => (
         <Card key={domain}>
           <CardHeader>
             <CardTitle className="text-lg">{domain}</CardTitle>
             <CardDescription>
-              {domainControls.length} controls • Level {Math.min(...domainControls.map((c) => c.level))}
-              -{Math.max(...domainControls.map((c) => c.level))}
+              {domainControls.length} controls • Level {Math.min(...domainControls.map((c: Control) => c.level))}
+              -{Math.max(...domainControls.map((c: Control) => c.level))}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {domainControls.map((control) => {
+              {domainControls.map((control: Control) => {
                 const evidenceInfo = controlEvidenceMap.get(control.id);
                 const hasEvidence = evidenceInfo && evidenceInfo.count > 0;
 

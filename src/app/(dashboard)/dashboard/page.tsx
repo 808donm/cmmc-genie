@@ -83,6 +83,11 @@ export default async function DashboardPage() {
   ]);
 
   // Calculate stats
+  type Task = typeof tasks[number];
+  type ControlInstance = typeof controlInstances[number];
+  type Project = typeof projects[number];
+  type Meeting = typeof upcomingMeetings[number];
+
   const totalTasks = tasks.length;
   const completedTasks = await prisma.task.count({
     where: {
@@ -90,12 +95,12 @@ export default async function DashboardPage() {
       status: "DONE",
     },
   });
-  const overdueTasks = tasks.filter((task) => task.dueDate && task.dueDate < new Date()).length;
+  const overdueTasks = tasks.filter((task: Task) => task.dueDate && task.dueDate < new Date()).length;
 
   // Calculate compliance progress
   const totalControls = allControls || 110; // Default to 110 CMMC controls
-  const compliantControls = controlInstances.filter((c) => c.status === "COMPLIANT").length;
-  const inProgressControls = controlInstances.filter((c) => c.status === "IN_PROGRESS").length;
+  const compliantControls = controlInstances.filter((c: ControlInstance) => c.status === "COMPLIANT").length;
+  const inProgressControls = controlInstances.filter((c: ControlInstance) => c.status === "IN_PROGRESS").length;
   const notStartedControls = totalControls - controlInstances.length;
   const compliancePercentage = totalControls > 0 ? (compliantControls / totalControls) * 100 : 0;
 
@@ -265,7 +270,7 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {projects.map((project) => (
+                {projects.map((project: Project) => (
                   <div
                     key={project.id}
                     className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
@@ -301,7 +306,7 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {tasks.slice(0, 5).map((task) => (
+                {tasks.slice(0, 5).map((task: Task) => (
                   <div
                     key={task.id}
                     className="flex items-start gap-3 rounded-lg border border-slate-200 p-3"
@@ -354,7 +359,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {upcomingMeetings.map((meeting) => (
+              {upcomingMeetings.map((meeting: Meeting) => (
                 <div
                   key={meeting.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 p-4"

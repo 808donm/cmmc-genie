@@ -42,7 +42,8 @@ export default async function InvitationsPage() {
   }
 
   // Get all invitations for organizations the user can manage
-  const organizationIds = memberships.map((m) => m.organizationId);
+  type Membership = typeof memberships[number];
+  const organizationIds = memberships.map((m: Membership) => m.organizationId);
 
   const invitations = await prisma.invitation.findMany({
     where: {
@@ -70,7 +71,8 @@ export default async function InvitationsPage() {
     },
   });
 
-  const pendingCount = invitations.filter((i) => i.status === "PENDING").length;
+  type Invitation = typeof invitations[number];
+  const pendingCount = invitations.filter((i: Invitation) => i.status === "PENDING").length;
 
   return (
     <div className="space-y-6">
@@ -115,7 +117,7 @@ export default async function InvitationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {invitations.filter((i) => i.status === "ACCEPTED").length}
+              {invitations.filter((i: Invitation) => i.status === "ACCEPTED").length}
             </div>
             <p className="text-xs text-slate-600">Successfully joined</p>
           </CardContent>

@@ -49,6 +49,9 @@ export default async function MeetingsPage() {
     }),
   ]);
 
+  type Meeting = typeof upcomingMeetings[number];
+  type PastMeeting = typeof pastMeetings[number];
+
   const platformBadgeColors = {
     TEAMS: "bg-purple-100 text-purple-700",
     ZOOM: "bg-blue-100 text-blue-700",
@@ -103,7 +106,7 @@ export default async function MeetingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {upcomingMeetings.reduce((acc, m) => acc + m.attendees.length, 0)}
+              {upcomingMeetings.reduce((acc: number, m: Meeting) => acc + m.attendees.length, 0)}
             </div>
           </CardContent>
         </Card>
@@ -115,7 +118,7 @@ export default async function MeetingsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {pastMeetings.filter((m) => m.transcript).length}
+              {pastMeetings.filter((m: PastMeeting) => m.transcript).length}
             </div>
           </CardContent>
         </Card>
