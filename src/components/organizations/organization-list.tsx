@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Users, Building, UserPlus, Plus } from "lucide-react";
+import { Building2, Users, Building, UserPlus, Plus, Edit } from "lucide-react";
 import { CreateOrganizationForm } from "./create-organization-form";
 import { InviteToOrganizationForm } from "./invite-to-organization-form";
+import { EditOrganizationForm } from "./edit-organization-form";
 
 interface Organization {
   id: string;
@@ -30,9 +31,11 @@ export function OrganizationList({
 }: OrganizationListProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [inviteToOrgId, setInviteToOrgId] = useState<string | null>(null);
+  const [editOrgId, setEditOrgId] = useState<string | null>(null);
 
   const mspOrganizations = organizations.filter((org) => org.type === "MSP");
   const selectedOrganization = organizations.find((org) => org.id === inviteToOrgId);
+  const editOrganization = organizations.find((org) => org.id === editOrgId);
 
   return (
     <>
@@ -93,6 +96,13 @@ export function OrganizationList({
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setEditOrgId(org.id)}
+                  className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </button>
+                <button
                   onClick={() => setInviteToOrgId(org.id)}
                   className="flex items-center gap-1.5 rounded-md border border-blue-600 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
                 >
@@ -132,6 +142,15 @@ export function OrganizationList({
         <InviteToOrganizationForm
           organization={selectedOrganization}
           onClose={() => setInviteToOrgId(null)}
+        />
+      )}
+
+      {/* Edit Organization Modal */}
+      {editOrgId && editOrganization && (
+        <EditOrganizationForm
+          organization={editOrganization}
+          mspOrganizations={mspOrganizations}
+          onClose={() => setEditOrgId(null)}
         />
       )}
     </>
