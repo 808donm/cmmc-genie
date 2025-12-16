@@ -4,9 +4,17 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function SignInForm() {
+interface SignInFormProps {
+  invitationToken?: string;
+}
+
+export function SignInForm({ invitationToken }: SignInFormProps) {
   const handleOAuthSignIn = async (provider: "google" | "azure-ad" | "zoom") => {
-    await signIn(provider, { callbackUrl: "/dashboard" });
+    const callbackUrl = invitationToken
+      ? `/auth/accept-invitation?token=${invitationToken}`
+      : "/dashboard";
+
+    await signIn(provider, { callbackUrl });
   };
 
   return (
@@ -14,7 +22,9 @@ export function SignInForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl text-center">Sign in</CardTitle>
         <CardDescription className="text-center">
-          Choose your preferred sign-in method
+          {invitationToken
+            ? "Sign in to accept your invitation"
+            : "Choose your preferred sign-in method"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
