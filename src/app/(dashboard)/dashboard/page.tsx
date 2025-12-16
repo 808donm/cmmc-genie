@@ -4,11 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Clock, AlertCircle, TrendingUp, FolderKanban, MessageSquare, Shield } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { shouldShowMspDashboard } from "@/lib/msp/utils";
 
 export default async function DashboardPage() {
   const session = await auth();
   const organizationId = session?.user.activeOrganization;
   const isSuperAdmin = session?.user.role === "SUPER_ADMIN";
+
+  // Redirect MSP users to MSP dashboard
+  if (session?.user?.id) {
+    const isMsp = await shouldShowMspDashboard(session.user.id);
+    if (isMsp) {
+      redirect("/msp/dashboard");
+    }
+  }
 
   // For super admins, show all organizations. For regular users, filter by their org.
   const orgFilter = isSuperAdmin ? {} : { organizationId: organizationId || "" };
