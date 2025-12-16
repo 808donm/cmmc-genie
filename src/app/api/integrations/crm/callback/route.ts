@@ -140,10 +140,14 @@ export async function GET(request: NextRequest) {
         scope: tokenResponse.scope,
         companyId: tokenResponse.companyId || locationInfo?.companyId || null,
         isActive: true,
-        metadata: {
-          locationInfo,
-          connectedVia: "oauth",
-        },
+        metadata: locationInfo
+          ? {
+              locationInfo: locationInfo as Record<string, unknown>,
+              connectedVia: "oauth",
+            }
+          : {
+              connectedVia: "oauth",
+            },
       },
       update: {
         userId: stateData.userId,
@@ -156,11 +160,16 @@ export async function GET(request: NextRequest) {
         scope: tokenResponse.scope,
         companyId: tokenResponse.companyId || locationInfo?.companyId || null,
         isActive: true,
-        metadata: {
-          locationInfo,
-          connectedVia: "oauth",
-          reconnectedAt: new Date(),
-        },
+        metadata: locationInfo
+          ? {
+              locationInfo: locationInfo as Record<string, unknown>,
+              connectedVia: "oauth",
+              reconnectedAt: new Date().toISOString(),
+            }
+          : {
+              connectedVia: "oauth",
+              reconnectedAt: new Date().toISOString(),
+            },
         syncError: null,
       },
     });
