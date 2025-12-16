@@ -89,16 +89,18 @@ enum UserRole {
 // ============================================
 
 model Organization {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  logo        String?
-  industry    String?
-  size        String?
-  website     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                   String           @id @default(cuid())
+  name                 String
+  slug                 String           @unique
+  description          String?
+  logo                 String?
+  industry             String?
+  size                 String?
+  website              String?
+  type                 OrganizationType @default(CLIENT)
+  parentOrganizationId String?          // For CLIENT orgs, points to MSP org
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   members              OrganizationMember[]
   projects             Project[]
@@ -111,6 +113,12 @@ model Organization {
   subscriptionTier     String               @default("free")
   subscriptionEndsAt   DateTime?
   complianceTargetDate DateTime?
+
+  // MSP relationships
+  parentOrganization Organization?  @relation("MspToClient", fields: [parentOrganizationId], references: [id])
+  clientOrganizations Organization[] @relation("MspToClient")
+
+  @@index([parentOrganizationId])
 }
 
 model OrganizationMember {
@@ -137,6 +145,11 @@ enum OrgRole {
   MANAGER
   MEMBER
   VIEWER
+}
+
+enum OrganizationType {
+  MSP    // Managed Service Provider
+  CLIENT // Client organization managed by an MSP
 }
 
 // ============================================

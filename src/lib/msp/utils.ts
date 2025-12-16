@@ -1,0 +1,167 @@
+import { prisma } from "@/lib/db";
+
+/**
+ * Check if a user belongs to an MSP organization
+ */
+export async function isMspUser(userId: string): Promise<boolean> {
+  const mspMembership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+      organization: {
+        type: "MSP",
+      },
+    },
+  });
+
+  return !!mspMembership;
+}
+
+/**
+ * Check if a user is an admin in an MSP organization
+ */
+export async function isMspAdmin(userId: string): Promise<boolean> {
+  const mspMembership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+      organization: {
+        type: "MSP",
+      },
+      role: {
+        in: ["OWNER", "ADMIN"],
+      },
+    },
+  });
+
+  return !!mspMembership;
+}
+
+/**
+ * Get the MSP organization for a user (if they belong to one)
+ */
+export async function getMspOrganization(userId: string) {
+  const membership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+      organization: {
+        type: "MSP",
+      },
+    },
+    include: {
+      organization: true,
+    },
+  });
+
+  return membership?.organization || null;
+}
+
+/**
+ * Get all organizations accessible by a user
+ * - Regular users: only their own organization(s)
+ * - MSP admins: their MSP org + all client orgs
+ */
+export async function getAccessibleOrganizations(userId: string) {
+  const isMsp = await isMspAdmin(userId);
+
+  if (isMsp) {
+    // MSP admin - get MSP org and all client orgs
+    const mspOrg = await getMspOrganization(userId);
+
+    if (!mspOrg) return [];
+
+    const clientOrgs = await prisma.organization.findMany({
+      where: {
+        parentOrganizationId: mspOrg.id,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return [mspOrg, ...clientOrgs];
+  } else {
+    // Regular user - get their organization(s)
+    const memberships = await prisma.organizationMember.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        organization: true,
+      },
+      orderBy: {
+        organization: {
+          name: "asc",
+        },
+      },
+    });
+
+    return memberships.map((m) => m.organization);
+  }
+}
+
+/**
+ * Check if a user has access to a specific organization
+ */
+export async function hasOrganizationAccess(
+  userId: string,
+  organizationId: string
+): Promise<boolean> {
+  // Check if user is a direct member
+  const directMembership = await prisma.organizationMember.findFirst({
+    where: {
+      userId,
+      organizationId,
+    },
+  });
+
+  if (directMembership) return true;
+
+  // Check if user is an MSP admin
+  const isMsp = await isMspAdmin(userId);
+  if (!isMsp) return false;
+
+  // Check if the organization is a client of the user's MSP
+  const mspOrg = await getMspOrganization(userId);
+  if (!mspOrg) return false;
+
+  const clientOrg = await prisma.organization.findFirst({
+    where: {
+      id: organizationId,
+      parentOrganizationId: mspOrg.id,
+    },
+  });
+
+  return !!clientOrg;
+}
+
+/**
+ * Get all client organizations for an MSP
+ */
+export async function getMspClients(mspOrganizationId: string) {
+  return await prisma.organization.findMany({
+    where: {
+      parentOrganizationId: mspOrganizationId,
+    },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          projects: true,
+          members: true,
+        },
+      },
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
