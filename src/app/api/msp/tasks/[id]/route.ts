@@ -90,8 +90,8 @@ export async function PATCH(
         control: {
           select: {
             id: true,
-            controlId: true,
-            title: true,
+            domain: true,
+            practice: true,
           },
         },
         project: {

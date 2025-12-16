@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
         control: {
           select: {
             id: true,
-            controlId: true,
-            title: true,
+            domain: true,
+            practice: true,
           },
         },
         project: {
@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
         control: {
           select: {
             id: true,
-            controlId: true,
-            title: true,
+            domain: true,
+            practice: true,
           },
         },
         project: {

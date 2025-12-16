@@ -32,8 +32,8 @@ interface Task {
   };
   control: {
     id: string;
-    controlId: string;
-    title: string;
+    domain: string;
+    practice: string;
   } | null;
 }
 

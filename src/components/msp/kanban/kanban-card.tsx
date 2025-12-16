@@ -30,8 +30,8 @@ interface Task {
   };
   control: {
     id: string;
-    controlId: string;
-    title: string;
+    domain: string;
+    practice: string;
   } | null;
 }
 
@@ -100,7 +100,7 @@ export function KanbanCard({ task, onTaskClick }: KanbanCardProps) {
       {/* Control Badge */}
       {task.control && (
         <Badge variant="outline" className="text-xs mb-2">
-          {task.control.controlId}
+          {task.control.id}
         </Badge>
       )}
 
