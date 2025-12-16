@@ -58,8 +58,8 @@ export default async function KanbanBoardPage({
       control: {
         select: {
           id: true,
-          controlId: true,
-          title: true,
+          domain: true,
+          practice: true,
         },
       },
       project: {
