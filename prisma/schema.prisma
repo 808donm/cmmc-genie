@@ -70,6 +70,10 @@ model User {
   // MSP Project Management
   mspTasksAssigned   MspTask[]      @relation("MspTaskAssignee") // MSP PM tasks assigned to this user
   mspRaciEntries     MspRACIEntry[] // MSP RACI assignments for this user
+
+  // GoHighLevel Integration
+  ghlContacts        GHLContact[]        // GHL contacts linked to this user
+  ghlCommunications  GHLCommunication[]  // GHL communications sent/received by this user
 }
 
 model VerificationToken {
@@ -160,6 +164,11 @@ model Organization {
   // MSP Project Management
   mspClientProjects   MspProject[] @relation("MspProjectClient") // Projects where this org is the client
   mspManagedProjects  MspProject[] @relation("MspProjectMSP")    // Projects managed by this MSP
+
+  // GoHighLevel Integration
+  ghlContacts         GHLContact[]        // GHL contacts for this organization
+  ghlCommunications   GHLCommunication[]  // GHL communications for this organization
+  ghlConversations    GHLConversation[]   // GHL conversations for this organization
 
   @@index([parentOrganizationId])
 }
@@ -1281,4 +1290,145 @@ enum MspDependencyType {
   START_TO_START   // Task B can't start until Task A starts
   FINISH_TO_FINISH // Task B can't finish until Task A finishes
   START_TO_FINISH  // Task B can't finish until Task A starts
+}
+
+// ============================================
+// GoHighLevel Communication Integration
+// ============================================
+
+model GHLContact {
+  id             String   @id @default(cuid())
+  ghlContactId   String   @unique // GHL's contact ID
+  userId         String?  // Link to CMMC Genie user if exists
+  organizationId String   // Organization this contact belongs to
+  email          String?
+  phone          String?
+  firstName      String?
+  lastName       String?
+  name           String?
+  tags           String[] // GHL tags
+  customFields   Json?    // GHL custom fields
+  ghlLocationId  String   // GHL location/sub-account ID
+  lastSyncedAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user           User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  communications GHLCommunication[]
+  conversations  GHLConversation[]
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([ghlContactId])
+  @@index([email])
+}
+
+model GHLCommunication {
+  id                String                  @id @default(cuid())
+  ghlMessageId      String?                 @unique // GHL's message ID
+  ghlContactId      String                  // Link to GHL contact
+  ghlConversationId String?                 // Link to GHL conversation
+  contactId         String                  // Link to our GHLContact
+  userId            String?                 // User who sent/received (if internal)
+  organizationId    String                  // Organization
+  type              GHLCommunicationType
+  direction         GHLCommunicationDirection
+  subject           String?
+  body              String?                 @db.Text
+  status            GHLCommunicationStatus
+  ghlStatus         String?                 // Raw GHL status
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  failedAt          DateTime?
+  errorMessage      String?                 @db.Text
+  metadata          Json?                   // Additional GHL data
+  ghlUrl            String?                 // Deep link to view in GHL
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  // Relations
+  contact       GHLContact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user          User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization  Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation  GHLConversation? @relation(fields: [ghlConversationId], references: [ghlConversationId])
+
+  @@index([contactId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([type])
+  @@index([status])
+  @@index([sentAt])
+  @@index([ghlConversationId])
+}
+
+model GHLConversation {
+  id                String   @id @default(cuid())
+  ghlConversationId String   @unique // GHL's conversation ID
+  contactId         String   // Link to our GHLContact
+  organizationId    String   // Organization
+  type              String?  // email, sms, etc.
+  subject           String?
+  status            String?  // open, closed
+  unreadCount       Int      @default(0)
+  lastMessageAt     DateTime?
+  ghlUrl            String?  // Deep link to view in GHL
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  contact        GHLContact          @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  communications GHLCommunication[]
+
+  @@index([contactId])
+  @@index([organizationId])
+  @@index([lastMessageAt])
+}
+
+model GHLWebhookEvent {
+  id             String   @id @default(cuid())
+  eventType      String   // message.sent, message.opened, etc.
+  ghlEventId     String?  @unique // GHL's event ID if provided
+  payload        Json     // Full webhook payload
+  processed      Boolean  @default(false)
+  processedAt    DateTime?
+  error          String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([eventType])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+enum GHLCommunicationType {
+  EMAIL
+  SMS
+  CALL
+  WHATSAPP
+  FACEBOOK
+  INSTAGRAM
+  GMB // Google My Business
+}
+
+enum GHLCommunicationDirection {
+  INBOUND  // Received from contact
+  OUTBOUND // Sent to contact
+}
+
+enum GHLCommunicationStatus {
+  QUEUED
+  SENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
+  UNSUBSCRIBED
 }
