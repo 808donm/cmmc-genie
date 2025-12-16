@@ -942,8 +942,8 @@ async function seedCMMCControls() {
 
         // Insert the control
         await client.query(
-          `INSERT INTO "CMMCControl" (id, domain, practice, level, description, objective, "createdAt", "updatedAt")
-           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+          `INSERT INTO "CMMCControl" (id, domain, practice, level, description, objective)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
           [
             control.id,
             control.domain,
