@@ -99,7 +99,7 @@ export default async function KanbanBoardPage({
   const clients = await prisma.organization.findMany({
     where: {
       type: "CLIENT",
-      mspProjects: {
+      mspClientProjects: {
         some: {
           mspOrganizationId: mspOrg.id,
         },
