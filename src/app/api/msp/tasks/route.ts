@@ -12,6 +12,12 @@ export async function GET(request: NextRequest) {
 
     // Get MSP organization
     const mspOrg = await getMspOrganization(session.user.id);
+    if (!mspOrg) {
+      return NextResponse.json(
+        { error: "MSP organization not found" },
+        { status: 404 }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
@@ -88,6 +94,12 @@ export async function POST(request: NextRequest) {
 
     // Get MSP organization
     const mspOrg = await getMspOrganization(session.user.id);
+    if (!mspOrg) {
+      return NextResponse.json(
+        { error: "MSP organization not found" },
+        { status: 404 }
+      );
+    }
 
     const body = await request.json();
     const {
