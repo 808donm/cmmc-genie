@@ -21,6 +21,9 @@ export default async function KanbanBoardPage({
 
   // Get MSP organization
   const mspOrg = await getMspOrganization(session.user.id);
+  if (!mspOrg) {
+    redirect("/dashboard");
+  }
 
   // Build where clause for tasks
   const where: any = {
