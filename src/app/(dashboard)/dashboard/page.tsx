@@ -8,11 +8,15 @@ import Link from "next/link";
 export default async function DashboardPage() {
   const session = await auth();
   const organizationId = session?.user.activeOrganization;
+  const isSuperAdmin = session?.user.role === "SUPER_ADMIN";
+
+  // For super admins, show all organizations. For regular users, filter by their org.
+  const orgFilter = isSuperAdmin ? {} : { organizationId: organizationId || "" };
 
   // Fetch dashboard data
   const [projects, tasks, upcomingMeetings, allControls, controlInstances] = await Promise.all([
     prisma.project.findMany({
-      where: { organizationId: organizationId || "" },
+      where: orgFilter,
       include: {
         roadmaps: {
           include: {
@@ -28,7 +32,7 @@ export default async function DashboardPage() {
     }),
     prisma.task.findMany({
       where: {
-        project: { organizationId: organizationId || "" },
+        project: orgFilter,
         status: { in: ["TODO", "IN_PROGRESS"] },
       },
       include: {
@@ -44,9 +48,7 @@ export default async function DashboardPage() {
     }),
     prisma.meeting.findMany({
       where: {
-        project: {
-          organizationId: organizationId || "",
-        },
+        project: orgFilter,
         startTime: { gte: new Date() },
       },
       include: {
@@ -62,9 +64,7 @@ export default async function DashboardPage() {
     prisma.cMMCControl.count(),
     prisma.controlInstance.findMany({
       where: {
-        project: {
-          organizationId: organizationId || "",
-        },
+        project: orgFilter,
       },
       select: {
         status: true,
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
   const totalTasks = tasks.length;
   const completedTasks = await prisma.task.count({
     where: {
-      project: { organizationId: organizationId || "" },
+      project: orgFilter,
       status: "DONE",
     },
   });
@@ -97,6 +97,12 @@ export default async function DashboardPage() {
         <p className="mt-2 text-slate-600">
           Welcome back, {session?.user.name}! Here&apos;s your CMMC compliance overview.
         </p>
+        {isSuperAdmin && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-purple-100 px-3 py-1.5 text-sm font-medium text-purple-800">
+            <Shield className="h-4 w-4" />
+            Viewing All Organizations (Super Admin)
+          </div>
+        )}
       </div>
 
       {/* Compliance Progress */}
