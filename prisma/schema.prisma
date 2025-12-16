@@ -66,6 +66,10 @@ model User {
   meetingAttendees   MeetingAttendee[]
   comments           Comment[]
   sentInvitations    Invitation[]         @relation("InvitedBy")
+
+  // Project Management (MSP)
+  pmTasksAssigned    Task[]               @relation("TaskAssignee") // PM tasks assigned to this user
+  raciEntries        RACIEntry[]          // RACI assignments for this user
 }
 
 model VerificationToken {
@@ -137,7 +141,7 @@ model Organization {
   updatedAt            DateTime         @updatedAt
 
   members              OrganizationMember[]
-  projects             Project[]
+  projects             Project[] // Legacy compliance projects
   policies             Policy[]
   configurations       Configuration[]
   vendors              Vendor[]
@@ -152,6 +156,10 @@ model Organization {
   // MSP relationships
   parentOrganization Organization?  @relation("MspToClient", fields: [parentOrganizationId], references: [id])
   clientOrganizations Organization[] @relation("MspToClient")
+
+  // Project Management (MSP)
+  clientProjects      Project[] @relation("ProjectClient") // Projects where this org is the client
+  mspProjects         Project[] @relation("ProjectMSP")    // Projects managed by this MSP
 
   @@index([parentOrganizationId])
 }
@@ -409,7 +417,11 @@ model CMMCControl {
   description String  @db.Text
   objective   String? @db.Text
 
-  instances ControlInstance[]
+  instances   ControlInstance[]
+
+  // Project Management (MSP)
+  pmTasks     Task[]        // PM tasks linked to this control
+  raciEntries RACIEntry[]   // RACI entries linked to this control
 
   @@index([domain])
   @@index([level])
@@ -1103,4 +1115,170 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ============================================
+// Project Management (MSP)
+// ============================================
+
+model Project {
+  id                String        @id @default(cuid())
+  name              String
+  description       String?       @db.Text
+  clientId          String        // Client organization
+  mspOrganizationId String        // MSP organization managing this project
+  status            ProjectStatus @default(PLANNING)
+  priority          Priority      @default(MEDIUM)
+  startDate         DateTime?
+  targetDate        DateTime?
+  completedDate     DateTime?
+  progress          Int           @default(0) // 0-100
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  client         Organization @relation("ProjectClient", fields: [clientId], references: [id], onDelete: Cascade)
+  mspOrganization Organization @relation("ProjectMSP", fields: [mspOrganizationId], references: [id], onDelete: Cascade)
+
+  tasks          Task[]
+  milestones     Milestone[]
+  raciEntries    RACIEntry[]
+
+  @@index([clientId])
+  @@index([mspOrganizationId])
+  @@index([status])
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  projectId   String
+  title       String
+  description String?     @db.Text
+  status      TaskStatus  @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  column      String      @default("todo") // Kanban column
+  position    Int         @default(0)      // Position within column
+  assigneeId  String?                      // MSP user assigned
+  controlId   String?                      // Optional link to CMMC control
+  dueDate     DateTime?
+  startDate   DateTime?
+  completedAt DateTime?
+  estimatedHours Int?
+  actualHours    Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee         User?             @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  control          CMMCControl?      @relation(fields: [controlId], references: [id])
+  raciEntries      RACIEntry[]
+  dependencies     TaskDependency[]  @relation("DependentTask")
+  dependents       TaskDependency[]  @relation("DependsOnTask")
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([controlId])
+  @@index([status])
+  @@index([column, position])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  projectId   String
+  name        String
+  description String?   @db.Text
+  dueDate     DateTime
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([dueDate])
+}
+
+model RACIEntry {
+  id        String    @id @default(cuid())
+  projectId String
+  taskId    String?               // Optional - can be project-level or task-level
+  userId    String
+  role      RACIRole
+  controlId String?               // Optional link to CMMC control
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  control CMMCControl? @relation(fields: [controlId], references: [id])
+
+  @@unique([projectId, taskId, userId, role])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([controlId])
+}
+
+model TaskDependency {
+  id              String         @id @default(cuid())
+  taskId          String         // Dependent task
+  dependsOnTaskId String         // Task it depends on
+  type            DependencyType @default(FINISH_TO_START)
+  createdAt       DateTime       @default(now())
+
+  // Relations
+  task       Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn  Task @relation("DependsOnTask", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+// ============================================
+// Project Management Enums
+// ============================================
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  AT_RISK
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  UNDER_REVIEW
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RACIRole {
+  RESPONSIBLE  // Person doing the work
+  ACCOUNTABLE  // Person ultimately answerable
+  CONSULTED    // Person whose opinion is sought
+  INFORMED     // Person kept up to date
+}
+
+enum DependencyType {
+  FINISH_TO_START  // Task B can't start until Task A finishes
+  START_TO_START   // Task B can't start until Task A starts
+  FINISH_TO_FINISH // Task B can't finish until Task A finishes
+  START_TO_FINISH  // Task B can't finish until Task A starts
 }
