@@ -72,6 +72,7 @@ model User {
   mspRaciEntries     MspRACIEntry[] // MSP RACI assignments for this user
 
   // GoHighLevel Integration
+  ghlIntegrations    GHLIntegration[]    // GHL connections set up by this user
   ghlContacts        GHLContact[]        // GHL contacts linked to this user
   ghlCommunications  GHLCommunication[]  // GHL communications sent/received by this user
 }
@@ -166,6 +167,7 @@ model Organization {
   mspManagedProjects  MspProject[] @relation("MspProjectMSP")    // Projects managed by this MSP
 
   // GoHighLevel Integration
+  ghlIntegration      GHLIntegration?     // GHL connection for this organization
   ghlContacts         GHLContact[]        // GHL contacts for this organization
   ghlCommunications   GHLCommunication[]  // GHL communications for this organization
   ghlConversations    GHLConversation[]   // GHL conversations for this organization
@@ -1404,6 +1406,34 @@ model GHLWebhookEvent {
   @@index([eventType])
   @@index([processed])
   @@index([createdAt])
+}
+
+model GHLIntegration {
+  id                String    @id @default(cuid())
+  organizationId    String    @unique // One GHL connection per organization
+  userId            String    // User who connected GHL
+  ghlLocationId     String    // GHL Location/Sub-account ID
+  ghlLocationName   String?   // Location name for display
+  accessToken       String    @db.Text // OAuth access token (encrypted)
+  refreshToken      String?   @db.Text // OAuth refresh token (encrypted)
+  tokenType         String?   // Usually "Bearer"
+  expiresAt         DateTime? // Token expiration
+  scope             String?   // OAuth scopes granted
+  companyId         String?   // GHL company/agency ID
+  isActive          Boolean   @default(true)
+  lastSyncedAt      DateTime?
+  syncError         String?   @db.Text
+  metadata          Json?     // Additional GHL data
+  connectedAt       DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([isActive])
 }
 
 enum GHLCommunicationType {
