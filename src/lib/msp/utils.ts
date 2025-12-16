@@ -194,7 +194,7 @@ export async function getUserActiveOrganization(userId: string) {
       organization: true,
     },
     orderBy: {
-      createdAt: 'asc', // First organization they joined
+      joinedAt: 'asc', // First organization they joined
     },
   });
 
