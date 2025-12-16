@@ -141,10 +141,12 @@ export async function GET(request: NextRequest) {
         companyId: tokenResponse.companyId || locationInfo?.companyId || null,
         isActive: true,
         metadata: locationInfo
-          ? {
-              locationInfo: locationInfo as Record<string, unknown>,
-              connectedVia: "oauth",
-            }
+          ? JSON.parse(
+              JSON.stringify({
+                locationInfo,
+                connectedVia: "oauth",
+              })
+            )
           : {
               connectedVia: "oauth",
             },
@@ -161,11 +163,13 @@ export async function GET(request: NextRequest) {
         companyId: tokenResponse.companyId || locationInfo?.companyId || null,
         isActive: true,
         metadata: locationInfo
-          ? {
-              locationInfo: locationInfo as Record<string, unknown>,
-              connectedVia: "oauth",
-              reconnectedAt: new Date().toISOString(),
-            }
+          ? JSON.parse(
+              JSON.stringify({
+                locationInfo,
+                connectedVia: "oauth",
+                reconnectedAt: new Date().toISOString(),
+              })
+            )
           : {
               connectedVia: "oauth",
               reconnectedAt: new Date().toISOString(),
