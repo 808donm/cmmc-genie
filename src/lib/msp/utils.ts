@@ -222,22 +222,24 @@ export async function getUserDashboardRoute(userId: string): Promise<string> {
  * Calculate compliance progress for a client organization
  */
 export async function getClientComplianceProgress(clientId: string): Promise<number> {
-  // Get all CMMC controls for the client
-  const controls = await prisma.cMMCControl.findMany({
+  // Get all control instances for the client's projects
+  const controlInstances = await prisma.controlInstance.findMany({
     where: {
-      organizationId: clientId,
+      project: {
+        organizationId: clientId,
+      },
     },
   });
 
-  if (controls.length === 0) return 0;
+  if (controlInstances.length === 0) return 0;
 
-  // Count completed controls (those with status IMPLEMENTED or COMPLIANT)
-  const completedControls = controls.filter(
-    (c) => c.status === "IMPLEMENTED" || c.status === "COMPLIANT"
+  // Count completed controls (those with status IMPLEMENTED or TESTING or COMPLIANT)
+  const completedControls = controlInstances.filter(
+    (c) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
   );
 
   // Calculate percentage
-  return Math.round((completedControls.length / controls.length) * 100);
+  return Math.round((completedControls.length / controlInstances.length) * 100);
 }
 
 /**

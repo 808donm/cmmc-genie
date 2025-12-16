@@ -76,28 +76,33 @@ export default async function ClientDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Get CMMC controls and calculate compliance by domain
-  const controls = await prisma.cMMCControl.findMany({
+  // Get control instances and calculate compliance by domain
+  const controlInstances = await prisma.controlInstance.findMany({
     where: {
-      organizationId: params.id,
+      project: {
+        organizationId: params.id,
+      },
+    },
+    include: {
+      control: true,
     },
   });
 
-  const totalControls = controls.length;
-  const completedControls = controls.filter(
-    (c) => c.status === "IMPLEMENTED" || c.status === "COMPLIANT"
+  const totalControls = controlInstances.length;
+  const completedControls = controlInstances.filter(
+    (c) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
   ).length;
   const complianceProgress =
     totalControls > 0 ? Math.round((completedControls / totalControls) * 100) : 0;
 
   // Group controls by domain
-  const controlsByDomain = controls.reduce((acc, control) => {
-    const domain = control.domain || "Other";
+  const controlsByDomain = controlInstances.reduce((acc, instance) => {
+    const domain = instance.control.domain || "Other";
     if (!acc[domain]) {
       acc[domain] = { total: 0, completed: 0 };
     }
     acc[domain].total++;
-    if (control.status === "IMPLEMENTED" || control.status === "COMPLIANT") {
+    if (instance.status === "IMPLEMENTED" || instance.status === "TESTING" || instance.status === "COMPLIANT") {
       acc[domain].completed++;
     }
     return acc;
