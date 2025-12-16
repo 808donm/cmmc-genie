@@ -129,13 +129,19 @@ CMMC Genie is a **dual-portal SaaS application** designed for Managed Service Pr
 - ✅ **Connection Testing**: Verify API connectivity before storing
 
 #### AI Agents (Built, Needs MSP Integration)
-- ✅ **14 AI Agents**: Policy drafting, compliance monitoring, training, etc.
+- ✅ **14 Specialized AI Agents**: Policy drafting, compliance monitoring, training, etc.
 - ✅ **Agent Configuration**: Prompts, tools, capabilities defined
 - ⏳ **MSP UI Integration**: Not yet exposed in MSP dashboard
 - ⏳ **Policy Generation Interface**: Not yet built
 - ⏳ **Configuration Assistance**: Not yet built
 - ⏳ **Evidence Approval Workflow**: Not yet built
 - ⏳ **Compliance Advice Chatbot**: Not yet built
+
+**Architecture Pattern**:
+- **CMMC-Genie Orchestrator**: Main agent that interfaces with users and delegates to specialized agents
+- **Specialized Backend Agents**: 14 agents that handle specific tasks (policy drafting, evidence evaluation, etc.)
+- **Communication Flow**: User → CMMC-Genie → Specialized Agent → JSON Response → CMMC-Genie → Formatted Output to User
+- **Benefits**: Single conversational interface, specialized expertise, consistent output formatting
 
 ---
 
@@ -439,8 +445,11 @@ CMMC Genie is a **dual-portal SaaS application** designed for Managed Service Pr
 **Complexity**: HIGH
 
 **Features to Build**:
+- [ ] CMMC-Genie Orchestrator agent (main interface)
 - [ ] Unified AI agent client library
-- [ ] Agent invocation functions
+- [ ] Agent delegation logic (orchestrator routes to specialized agents)
+- [ ] JSON response parsing from specialized agents
+- [ ] Output formatting for user consumption
 - [ ] Streaming response handling
 - [ ] Error handling and retries
 - [ ] Agent state management
@@ -451,19 +460,29 @@ CMMC Genie is a **dual-portal SaaS application** designed for Managed Service Pr
 - [ ] Agent health monitoring
 
 **API Endpoints to Create**:
-- `POST /api/ai/agents/invoke` - Invoke any agent
-- `POST /api/ai/agents/policy/generate` - Generate policy
-- `POST /api/ai/agents/config/advise` - Get config advice
-- `POST /api/ai/agents/evidence/analyze` - Analyze evidence
-- `POST /api/ai/chat` - Chat with compliance advisor
+- `POST /api/ai/chat` - Chat with CMMC-Genie orchestrator (main endpoint)
+- `POST /api/ai/agents/invoke` - Direct agent invocation (internal use)
+- `POST /api/ai/agents/policy/generate` - Generate policy via orchestrator
+- `POST /api/ai/agents/config/advise` - Get config advice via orchestrator
+- `POST /api/ai/agents/evidence/analyze` - Analyze evidence via orchestrator
 - `GET /api/ai/agents` - List all agents
 - `GET /api/ai/conversations/:id` - Get conversation history
 - `GET /api/ai/usage` - Get usage statistics
 
+**Orchestrator Pattern**:
+1. User sends request to CMMC-Genie orchestrator
+2. Orchestrator analyzes request and determines which specialized agent(s) to invoke
+3. Orchestrator invokes specialized agent(s) with context
+4. Specialized agent returns JSON response
+5. Orchestrator formats JSON into user-friendly output
+6. User receives formatted response
+
 **Technical Requirements**:
 - Integration with Claude API (or agent framework)
+- Orchestrator prompt template with agent delegation logic
+- Specialized agent prompt templates (14 agents)
+- JSON schema validation for agent responses
 - Conversation storage model (may need new schema)
-- Agent prompt templates
 - Response streaming
 - Error handling
 - Usage analytics
