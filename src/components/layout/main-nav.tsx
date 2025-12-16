@@ -17,6 +17,7 @@ import {
   Archive,
   UserCog,
   Mail,
+  Building2,
 } from "lucide-react";
 
 const navigation = [
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Evidence Vault", href: "/evidence", icon: Archive },
   { name: "Policies", href: "/policies", icon: FileText },
   { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Organizations", href: "/organizations", icon: Building2 },
   { name: "Users", href: "/users", icon: UserCog },
   { name: "Invitations", href: "/invitations", icon: Mail },
   { name: "Settings", href: "/settings", icon: Settings },
