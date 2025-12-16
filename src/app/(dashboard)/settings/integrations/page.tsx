@@ -230,19 +230,19 @@ export default async function IntegrationsPage({
               </p>
               <ol className="list-decimal space-y-2 pl-5">
                 <li>
-                  Click the "Connect GoHighLevel" button for your organization
+                  Click the &ldquo;Connect GoHighLevel&rdquo; button for your organization
                 </li>
-                <li>You'll be redirected to GoHighLevel's authorization page</li>
+                <li>You&apos;ll be redirected to GoHighLevel&apos;s authorization page</li>
                 <li>Select the location you want to connect</li>
                 <li>
                   Authorize CMMC Genie to access your GHL account
                 </li>
                 <li>
-                  You'll be redirected back here with a success message
+                  You&apos;ll be redirected back here with a success message
                 </li>
               </ol>
               <p className="mt-4 text-xs text-slate-500">
-                <span className="font-medium">Note:</span> You'll need to have
+                <span className="font-medium">Note:</span> You&apos;ll need to have
                 a GoHighLevel account and the necessary permissions to authorize
                 third-party applications.
               </p>
