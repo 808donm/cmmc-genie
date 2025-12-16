@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { isMspAdmin, getAccessibleOrganizations } from "@/lib/msp/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Users, ShieldCheck, Building } from "lucide-react";
-import Link from "next/link";
+import { OrganizationList } from "@/components/organizations/organization-list";
 
 export default async function OrganizationsPage() {
   const session = await auth();
@@ -166,73 +166,14 @@ export default async function OrganizationsPage() {
         <CardHeader>
           <CardTitle>All Organizations</CardTitle>
           <CardDescription>
-            View and manage organization details
+            Create new organizations and invite users from a global perspective
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {organizations.map((org) => (
-              <div
-                key={org.id}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="mt-1 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-                    <Building2 className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-slate-900">{org.name}</h3>
-                      <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                          org.type === "MSP"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {org.type}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-4 text-sm text-slate-600">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5" />
-                        <span>{org._count.members} members</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Building className="h-3.5 w-3.5" />
-                        <span>{org._count.projects} projects</span>
-                      </div>
-                    </div>
-                    {org.parentOrganization && (
-                      <div className="mt-1 text-xs text-slate-500">
-                        Managed by: {org.parentOrganization.name}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/organizations/${org.id}`}
-                    className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            ))}
-
-            {organizations.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Building2 className="h-12 w-12 text-slate-400" />
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">
-                  No organizations found
-                </h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  You don&apos;t belong to any organizations yet
-                </p>
-              </div>
-            )}
-          </div>
+          <OrganizationList
+            organizations={organizations}
+            canCreateOrganizations={isSuperAdmin || isMsp}
+          />
         </CardContent>
       </Card>
     </div>
