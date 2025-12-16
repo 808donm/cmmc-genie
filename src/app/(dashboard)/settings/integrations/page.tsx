@@ -82,9 +82,9 @@ export default async function IntegrationsPage({
         <div className="rounded-lg border border-slate-200 bg-white p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              {/* GHL Logo/Icon */}
+              {/* GoHighLevel Logo/Icon */}
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                <span className="text-lg font-bold text-white">GHL</span>
+                <span className="text-sm font-bold text-white">HL</span>
               </div>
 
               <div>
@@ -92,8 +92,8 @@ export default async function IntegrationsPage({
                   GoHighLevel
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Send emails, SMS, and manage communications through your GHL
-                  account
+                  Send emails, SMS, and manage communications through your
+                  GoHighLevel account
                 </p>
 
                 {/* Features List */}
@@ -204,7 +204,7 @@ export default async function IntegrationsPage({
                           </>
                         ) : (
                           <Link
-                            href={`/api/ghl/authorize?organizationId=${membership.organizationId}`}
+                            href={`/api/integrations/gohighlevel/authorize?organizationId=${membership.organizationId}`}
                             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-purple-700"
                           >
                             Connect GoHighLevel
