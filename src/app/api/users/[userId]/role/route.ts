@@ -79,9 +79,9 @@ export async function PATCH(
       // Update organization role
       await prisma.organizationMember.update({
         where: {
-          userId_organizationId: {
-            userId,
+          organizationId_userId: {
             organizationId,
+            userId,
           },
         },
         data: {
