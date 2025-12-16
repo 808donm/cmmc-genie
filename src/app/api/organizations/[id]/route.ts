@@ -15,7 +15,7 @@ export async function PATCH(
 
     const { id } = params;
     const body = await request.json();
-    const { name, type, parentOrganizationId } = body;
+    const { name, type, parentOrganizationId, industry, size, website, description } = body;
 
     // Check if user has access to this organization
     const isMsp = await isMspAdmin(session.user.id);
@@ -147,6 +147,23 @@ export async function PATCH(
     } else if (type === "MSP" || currentOrg.type === "MSP") {
       // MSP organizations should not have a parent
       updateData.parentOrganizationId = null;
+    }
+
+    // Update optional fields
+    if (industry !== undefined) {
+      updateData.industry = industry || null;
+    }
+
+    if (size !== undefined) {
+      updateData.size = size || null;
+    }
+
+    if (website !== undefined) {
+      updateData.website = website || null;
+    }
+
+    if (description !== undefined) {
+      updateData.description = description || null;
     }
 
     // Update organization

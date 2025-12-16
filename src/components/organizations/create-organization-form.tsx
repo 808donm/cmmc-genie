@@ -20,6 +20,10 @@ export function CreateOrganizationForm({
     name: "",
     type: "CLIENT" as "MSP" | "CLIENT",
     parentOrganizationId: "",
+    industry: "",
+    size: "",
+    website: "",
+    description: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,6 +159,99 @@ export function CreateOrganizationForm({
               )}
             </div>
           )}
+
+          <div>
+            <label
+              htmlFor="industry"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Industry (Optional)
+            </label>
+            <select
+              id="industry"
+              value={formData.industry}
+              onChange={(e) =>
+                setFormData({ ...formData, industry: e.target.value })
+              }
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Select industry...</option>
+              <option value="Aerospace">Aerospace</option>
+              <option value="Defense">Defense</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Technology">Technology</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Financial Services">Financial Services</option>
+              <option value="Government">Government</option>
+              <option value="Education">Education</option>
+              <option value="Energy">Energy</option>
+              <option value="Telecommunications">Telecommunications</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="size"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Organization Size (Optional)
+            </label>
+            <select
+              id="size"
+              value={formData.size}
+              onChange={(e) =>
+                setFormData({ ...formData, size: e.target.value })
+              }
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Select size...</option>
+              <option value="1-10">1-10 employees</option>
+              <option value="11-50">11-50 employees</option>
+              <option value="51-200">51-200 employees</option>
+              <option value="201-500">201-500 employees</option>
+              <option value="501-1000">501-1000 employees</option>
+              <option value="1001+">1001+ employees</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="website"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Website (Optional)
+            </label>
+            <input
+              type="url"
+              id="website"
+              value={formData.website}
+              onChange={(e) =>
+                setFormData({ ...formData, website: e.target.value })
+              }
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="https://example.com"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Description (Optional)
+            </label>
+            <textarea
+              id="description"
+              rows={3}
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="Brief description of your organization..."
+            />
+          </div>
 
           <div className="flex gap-3 pt-4">
             <button

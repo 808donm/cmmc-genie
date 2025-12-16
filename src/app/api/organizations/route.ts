@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, type, parentOrganizationId } = body;
+    const { name, type, parentOrganizationId, industry, size, website, description } = body;
 
     // Validate required fields
     if (!name || !type) {
@@ -65,6 +65,10 @@ export async function POST(request: NextRequest) {
         slug,
         type,
         parentOrganizationId: type === "CLIENT" ? parentOrganizationId : null,
+        industry: industry || null,
+        size: size || null,
+        website: website || null,
+        description: description || null,
         members: {
           create: {
             userId: session.user.id,
