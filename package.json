@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "make-super-admin": "tsx scripts/make-super-admin.ts",
-    "seed:cmmc": "tsx scripts/seed-cmmc-controls.ts"
+    "seed:cmmc": "tsx scripts/seed-cmmc-controls.ts",
+    "seed:cmmc-sql": "node scripts/seed-cmmc-controls-sql.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
@@ -36,6 +37,7 @@
     "next": "^14.2.24",
     "next-auth": "^5.0.0-beta.25",
     "openai": "^4.104.0",
+    "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.15.0",
