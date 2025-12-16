@@ -52,7 +52,7 @@ export default async function UsersPage() {
   // Get all users who are members of these organizations
   const users = await prisma.user.findMany({
     where: {
-      organizationMembers: {
+      organizationMember: {
         some: {
           organizationId: {
             in: allOrganizationIds,
@@ -61,7 +61,7 @@ export default async function UsersPage() {
       },
     },
     include: {
-      organizationMembers: {
+      organizationMember: {
         where: {
           organizationId: {
             in: allOrganizationIds,
@@ -112,9 +112,9 @@ export default async function UsersPage() {
   });
 
   const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.organizationMembers.length > 0).length;
+  const activeUsers = users.filter((u) => u.organizationMember.length > 0).length;
   const adminUsers = users.filter((u) =>
-    u.organizationMembers.some((m) => m.role === "ADMIN" || m.role === "OWNER")
+    u.organizationMember.some((m) => m.role === "ADMIN" || m.role === "OWNER")
   ).length;
 
   return (

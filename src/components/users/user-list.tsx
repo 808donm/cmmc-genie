@@ -11,7 +11,7 @@ interface UserData {
   email?: string | null;
   role: string;
   createdAt: Date;
-  organizationMembers: Array<{
+  organizationMember: Array<{
     role: string;
     organization: {
       id: string;
@@ -114,7 +114,7 @@ export function UserList({ users, isMspAdmin, currentUserId }: UserListProps) {
     return (
       user.name?.toLowerCase().includes(search) ||
       user.email?.toLowerCase().includes(search) ||
-      user.organizationMembers.some((m) =>
+      user.organizationMember.some((m) =>
         m.organization.name.toLowerCase().includes(search)
       )
     );
@@ -207,7 +207,7 @@ export function UserList({ users, isMspAdmin, currentUserId }: UserListProps) {
                       Organization Roles:
                     </span>
                     <div className="space-y-2">
-                      {user.organizationMembers.map((membership) => (
+                      {user.organizationMember.map((membership) => (
                         <div
                           key={membership.organization.id}
                           className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2"

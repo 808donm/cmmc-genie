@@ -109,7 +109,7 @@ export async function PATCH(
     const updatedUser = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        organizationMembers: {
+        organizationMember: {
           include: {
             organization: {
               select: {
