@@ -47,10 +47,11 @@ interface MspTask {
 
 interface MspMilestone {
   id: string;
-  title: string;
+  name: string;
   description: string | null;
   dueDate: Date | string;
-  status: string;
+  completed: boolean;
+  completedAt: Date | string | null;
   project: {
     id: string;
     name: string;
@@ -164,12 +165,12 @@ export function GanttChartClient({
 
       transformedTasks.push({
         id: `milestone-${milestone.id}`,
-        name: `📍 ${milestone.title}`,
+        name: `📍 ${milestone.name}`,
         startDate,
         endDate: dueDate,
-        progress: milestone.status === "COMPLETED" ? 100 : 0,
+        progress: milestone.completed ? 100 : 0,
         category: `${milestone.project.client.name} - ${milestone.project.name}`,
-        status: milestone.status === "COMPLETED" ? "COMPLETED" : "NOT_STARTED",
+        status: milestone.completed ? "COMPLETED" : "NOT_STARTED",
       });
     }
 
