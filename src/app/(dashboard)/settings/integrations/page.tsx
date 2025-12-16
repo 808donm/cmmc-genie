@@ -204,7 +204,7 @@ export default async function IntegrationsPage({
                           </>
                         ) : (
                           <Link
-                            href={`/api/integrations/gohighlevel/authorize?organizationId=${membership.organizationId}`}
+                            href={`/api/integrations/crm/authorize?organizationId=${membership.organizationId}`}
                             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white hover:from-blue-700 hover:to-purple-700"
                           >
                             Connect GoHighLevel

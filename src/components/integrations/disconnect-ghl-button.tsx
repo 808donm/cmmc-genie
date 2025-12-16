@@ -17,7 +17,7 @@ export function DisconnectGHLButton({ organizationId }: DisconnectGHLButtonProps
     setIsDisconnecting(true);
 
     try {
-      const response = await fetch("/api/integrations/gohighlevel/disconnect", {
+      const response = await fetch("/api/integrations/crm/disconnect", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
