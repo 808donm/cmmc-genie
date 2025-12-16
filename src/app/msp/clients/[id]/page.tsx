@@ -347,7 +347,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
             >
               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <span className="text-sm font-medium text-blue-600">
-                  {member.user.name?.charAt(0) || member.user.email.charAt(0)}
+                  {member.user.name?.charAt(0) || member.user.email?.charAt(0) || "?"}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
@@ -355,7 +355,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
                   {member.user.name || "Unnamed User"}
                 </p>
                 <p className="text-xs text-slate-600 truncate">
-                  {member.user.email}
+                  {member.user.email || "No email"}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {member.role || "MEMBER"}
