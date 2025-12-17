@@ -17,6 +17,7 @@ export const authConfig = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
+          scope: "openid email profile https://www.googleapis.com/auth/gmail.send",
         },
       },
     }),
@@ -26,7 +27,7 @@ export const authConfig = {
       issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || "common"}/v2.0`,
       authorization: {
         params: {
-          scope: "openid profile email User.Read Organization.Read.All",
+          scope: "openid profile email User.Read Organization.Read.All Mail.Send offline_access",
         },
       },
     }),

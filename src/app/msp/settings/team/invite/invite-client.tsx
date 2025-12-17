@@ -74,7 +74,12 @@ export function InviteTeamMemberClient({ organization, pendingInvitations, curre
         throw new Error(data.error || "Failed to send invitation");
       }
 
-      setSuccess(`Invitation sent to ${email}`);
+      // Show success message with email status
+      if (data.emailSent) {
+        setSuccess(`Invitation email sent to ${email}`);
+      } else {
+        setSuccess(`Invitation created for ${email}. ${data.emailError || "Email could not be sent - please copy the link below."}`);
+      }
       setEmail("");
 
       // Refresh the page to show new invitation

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { hasOrganizationAccess } from "@/lib/msp/utils";
+import { sendEmailViaOAuth, createInvitationEmailHtml, createInvitationEmailText } from "@/lib/email/send-email";
 
 // POST /api/invitations - Create a new invitation
 export async function POST(request: NextRequest) {
@@ -85,11 +86,34 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send invitation email
-    // In a production app, you would send an email here with:
-    // - Link: `${process.env.NEXTAUTH_URL}/auth/signin?invitation=${invitation.token}`
-    // - Organization name
-    // - Inviter name
+    // Send invitation email via user's OAuth provider
+    const inviteLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/signin?invitation=${invitation.token}`;
+
+    const emailResult = await sendEmailViaOAuth(session.user.id, {
+      to: email,
+      subject: `Invitation to join ${invitation.organization.name}`,
+      htmlBody: createInvitationEmailHtml({
+        inviteeEmail: email,
+        organizationName: invitation.organization.name,
+        inviterName: invitation.invitedBy?.name || invitation.invitedBy?.email || "Someone",
+        role: role,
+        inviteLink,
+        expiresAt: invitation.expiresAt,
+      }),
+      textBody: createInvitationEmailText({
+        inviteeEmail: email,
+        organizationName: invitation.organization.name,
+        inviterName: invitation.invitedBy?.name || invitation.invitedBy?.email || "Someone",
+        role: role,
+        inviteLink,
+        expiresAt: invitation.expiresAt,
+      }),
+    });
+
+    // Log email send result (don't fail if email fails to send)
+    if (!emailResult.success) {
+      console.warn("Failed to send invitation email:", emailResult.error);
+    }
 
     return NextResponse.json({
       success: true,
@@ -99,8 +123,10 @@ export async function POST(request: NextRequest) {
         role: invitation.role,
         token: invitation.token,
         expiresAt: invitation.expiresAt,
-        inviteLink: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/signin?invitation=${invitation.token}`,
+        inviteLink,
       },
+      emailSent: emailResult.success,
+      emailError: emailResult.error,
     });
   } catch (error) {
     console.error("Error creating invitation:", error);
