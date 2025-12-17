@@ -23,7 +23,7 @@ type Invitation = {
   expiresAt: Date;
   invitedBy: {
     name: string | null;
-    email: string;
+    email: string | null;
   } | null;
 };
 
