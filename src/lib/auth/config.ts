@@ -92,11 +92,32 @@ export const authConfig = {
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       // Allow sign-in - the adapter will handle user creation
       if (!user.email) {
         return false;
       }
+
+      // Handle account linking: if user exists but account doesn't, link them
+      if (account && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: {
+            accounts: {
+              where: {
+                provider: account.provider,
+              },
+            },
+          },
+        });
+
+        // If user exists but has no account for this provider, allow linking
+        if (existingUser && existingUser.accounts.length === 0) {
+          // NextAuth adapter will create the Account record
+          return true;
+        }
+      }
+
       return true;
     },
     async jwt({ token, user, account, profile }) {
