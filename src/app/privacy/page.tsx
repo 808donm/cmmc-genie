@@ -135,7 +135,7 @@ export default function PrivacyPolicyPage() {
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <p className="text-slate-700 mb-2">
-              Email: <a href="mailto:support@cmmc-genie.com" className="text-blue-600 hover:text-blue-700">support@cmmc-genie.com</a>
+              Email: <a href="mailto:info@ent-techsolutions.com" className="text-blue-600 hover:text-blue-700">info@ent-techsolutions.com</a>
             </p>
           </div>
         </div>

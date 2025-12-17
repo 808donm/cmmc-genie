@@ -191,7 +191,7 @@ export default function TermsOfServicePage() {
               For questions about these Terms, please contact us at:
             </p>
             <p className="text-slate-700 mb-2">
-              Email: <a href="mailto:legal@cmmc-genie.com" className="text-blue-600 hover:text-blue-700">legal@cmmc-genie.com</a>
+              Email: <a href="mailto:info@ent-techsolutions.com" className="text-blue-600 hover:text-blue-700">info@ent-techsolutions.com</a>
             </p>
 
             <div className="mt-12 pt-8 border-t border-slate-200">
