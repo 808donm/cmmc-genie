@@ -33,12 +33,14 @@ export default async function TasksPage() {
       })
     : [];
 
+  type Task = typeof tasks[number];
+
   const tasksByStatus = {
-    BACKLOG: tasks.filter((t) => t.status === "BACKLOG"),
-    TODO: tasks.filter((t) => t.status === "TODO"),
-    IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS"),
-    IN_REVIEW: tasks.filter((t) => t.status === "IN_REVIEW"),
-    DONE: tasks.filter((t) => t.status === "DONE"),
+    BACKLOG: tasks.filter((t: Task) => t.status === "BACKLOG"),
+    TODO: tasks.filter((t: Task) => t.status === "TODO"),
+    IN_PROGRESS: tasks.filter((t: Task) => t.status === "IN_PROGRESS"),
+    IN_REVIEW: tasks.filter((t: Task) => t.status === "IN_REVIEW"),
+    DONE: tasks.filter((t: Task) => t.status === "DONE"),
   };
 
   return (
@@ -83,7 +85,7 @@ export default async function TasksPage() {
                 <CardDescription>{statusTasks.length} tasks</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                {statusTasks.map((task) => (
+                {statusTasks.map((task: Task) => (
                   <div
                     key={task.id}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-sm shadow-sm"

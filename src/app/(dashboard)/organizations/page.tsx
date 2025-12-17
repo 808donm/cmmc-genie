@@ -40,7 +40,7 @@ export default async function OrganizationsPage() {
   } else if (isMsp) {
     // MSP admins see their organization and all client organizations
     const accessibleOrgs = await getAccessibleOrganizations(session.user.id);
-    const orgIds = accessibleOrgs.map((org) => org.id);
+    const orgIds = accessibleOrgs.map((org: { id: string }) => org.id);
 
     organizations = await prisma.organization.findMany({
       where: {
@@ -92,13 +92,16 @@ export default async function OrganizationsPage() {
       },
     });
 
-    organizations = memberships.map((m) => m.organization);
+    type Membership = typeof memberships[number];
+    organizations = memberships.map((m: Membership) => m.organization);
   }
 
+  type Organization = typeof organizations[number];
+
   const totalOrganizations = organizations.length;
-  const mspOrganizations = organizations.filter((org) => org.type === "MSP").length;
-  const clientOrganizations = organizations.filter((org) => org.type === "CLIENT").length;
-  const totalMembers = organizations.reduce((sum, org) => sum + org._count.members, 0);
+  const mspOrganizations = organizations.filter((org: Organization) => org.type === "MSP").length;
+  const clientOrganizations = organizations.filter((org: Organization) => org.type === "CLIENT").length;
+  const totalMembers = organizations.reduce((sum: number, org: Organization) => sum + org._count.members, 0);
 
   return (
     <div className="space-y-6">

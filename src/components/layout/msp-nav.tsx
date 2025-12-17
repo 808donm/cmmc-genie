@@ -14,6 +14,8 @@ import {
   GanttChart,
   Network,
   CheckSquare,
+  Sparkles,
+  Calendar,
 } from "lucide-react";
 
 const mspNavigation = [
@@ -46,6 +48,18 @@ const mspNavigation = [
     href: "/msp/tasks",
     icon: CheckSquare,
     description: "Cross-client task management"
+  },
+  {
+    name: "AI Agents",
+    href: "/msp/agents",
+    icon: Sparkles,
+    description: "CMMC compliance assistant"
+  },
+  {
+    name: "Calendar",
+    href: "/msp/calendar",
+    icon: Calendar,
+    description: "Client meetings schedule"
   },
   {
     name: "Team",

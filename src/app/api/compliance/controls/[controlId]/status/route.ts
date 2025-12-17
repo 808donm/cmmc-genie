@@ -60,9 +60,10 @@ export async function PATCH(
       });
 
       if (controlInstance) {
+        type Evidence = typeof controlInstance.evidence[number];
         const totalEvidence = controlInstance.evidence.length;
         const approvedEvidence = controlInstance.evidence.filter(
-          (e) => e.status === "APPROVED"
+          (e: Evidence) => e.status === "APPROVED"
         ).length;
 
         if (totalEvidence === 0) {

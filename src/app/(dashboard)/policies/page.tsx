@@ -22,6 +22,8 @@ export default async function PoliciesPage() {
       })
     : [];
 
+  type Policy = typeof policies[number];
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -55,7 +57,7 @@ export default async function PoliciesPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {policies.map((policy) => (
+          {policies.map((policy: Policy) => (
             <Card key={policy.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">

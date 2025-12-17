@@ -38,6 +38,8 @@ export default async function IntegrationsPage({
     },
   });
 
+  type Membership = typeof memberships[number];
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -132,7 +134,7 @@ export default async function IntegrationsPage({
                 </div>
               </div>
             ) : (
-              memberships.map((membership) => {
+              memberships.map((membership: Membership) => {
                 const integration = membership.organization.ghlIntegration;
                 const isConnected = integration && integration.isActive;
 

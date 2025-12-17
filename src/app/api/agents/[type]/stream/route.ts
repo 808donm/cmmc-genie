@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAgent, agentFactory, AGENT_REGISTRY } from "@/lib/ai/agents";
 import { isAIProviderConfigured } from "@/lib/ai";
-import { AgentType } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +37,7 @@ export async function POST(
       );
     }
 
-    const agentType = params.type.toUpperCase().replace(/-/g, "_") as AgentType;
+    const agentType = params.type.toUpperCase().replace(/-/g, "_") as any;
 
     // Validate agent type
     if (!AGENT_REGISTRY[agentType]) {

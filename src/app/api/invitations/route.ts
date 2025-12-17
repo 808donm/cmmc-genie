@@ -132,7 +132,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const organizationIds = memberships.map((m) => m.organizationId);
+    type Membership = typeof memberships[number];
+    const organizationIds = memberships.map((m: Membership) => m.organizationId);
 
     // Get invitations for these organizations
     const invitations = await prisma.invitation.findMany({

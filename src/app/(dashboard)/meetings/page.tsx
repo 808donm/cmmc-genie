@@ -140,7 +140,7 @@ export default async function MeetingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {upcomingMeetings.map((meeting) => (
+              {upcomingMeetings.map((meeting: Meeting) => (
                 <div
                   key={meeting.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50"
@@ -157,7 +157,7 @@ export default async function MeetingsPage() {
                         {meeting.platform && (
                           <Badge
                             variant="outline"
-                            className={platformBadgeColors[meeting.platform]}
+                            className={platformBadgeColors[meeting.platform as keyof typeof platformBadgeColors]}
                           >
                             {meeting.platform.replace("_", " ")}
                           </Badge>
@@ -212,7 +212,7 @@ export default async function MeetingsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {pastMeetings.map((meeting) => (
+              {pastMeetings.map((meeting: PastMeeting) => (
                 <div
                   key={meeting.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 p-3"

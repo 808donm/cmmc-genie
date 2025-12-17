@@ -39,14 +39,16 @@ export default async function UsersPage() {
     );
   }
 
+  type Membership = typeof memberships[number];
+
   // Get all users from accessible organizations
-  const organizationIds = memberships.map((m) => m.organizationId);
+  const organizationIds = memberships.map((m: Membership) => m.organizationId);
 
   // If MSP admin, get all organizations
   let allOrganizationIds = organizationIds;
   if (isMsp) {
     const accessibleOrgs = await getAccessibleOrganizations(session.user.id);
-    allOrganizationIds = accessibleOrgs.map((org) => org.id);
+    allOrganizationIds = accessibleOrgs.map((org: { id: string }) => org.id);
   }
 
   // Get all users who are members of these organizations
@@ -111,10 +113,13 @@ export default async function UsersPage() {
     },
   });
 
+  type User = typeof users[number];
+  type OrgMember = User['organizationMember'][number];
+
   const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.organizationMember.length > 0).length;
-  const adminUsers = users.filter((u) =>
-    u.organizationMember.some((m) => m.role === "ADMIN" || m.role === "OWNER")
+  const activeUsers = users.filter((u: User) => u.organizationMember.length > 0).length;
+  const adminUsers = users.filter((u: User) =>
+    u.organizationMember.some((m: OrgMember) => m.role === "ADMIN" || m.role === "OWNER")
   ).length;
 
   return (
