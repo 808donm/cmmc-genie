@@ -37,10 +37,10 @@ export async function POST(
       );
     }
 
-    const agentType = params.type.toUpperCase().replace(/-/g, "_") as any;
+    const agentType = params.type.toUpperCase().replace(/-/g, "_");
 
     // Validate agent type
-    if (!AGENT_REGISTRY[agentType]) {
+    if (!(agentType in AGENT_REGISTRY)) {
       return NextResponse.json(
         { error: `Unknown agent type: ${params.type}` },
         { status: 404 }
@@ -48,7 +48,7 @@ export async function POST(
     }
 
     // Check if agent is implemented
-    if (!agentFactory.isImplemented(agentType)) {
+    if (!agentFactory.isImplemented(agentType as any)) {
       return NextResponse.json(
         {
           error: `Agent ${params.type} is not yet implemented`,
@@ -69,7 +69,7 @@ export async function POST(
     }
 
     // Get the specific agent
-    const agent = getAgent(agentType);
+    const agent = getAgent(agentType as any);
 
     // Create a readable stream
     const encoder = new TextEncoder();
