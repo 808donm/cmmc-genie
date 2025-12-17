@@ -94,7 +94,9 @@ export async function getAccessibleOrganizations(userId: string) {
       },
     });
 
-    return memberships.map((m) => m.organization);
+    type Membership = typeof memberships[number];
+
+    return memberships.map((m: Membership) => m.organization);
   }
 }
 
@@ -233,9 +235,11 @@ export async function getClientComplianceProgress(clientId: string): Promise<num
 
   if (controlInstances.length === 0) return 0;
 
+  type ControlInstance = typeof controlInstances[number];
+
   // Count completed controls (those with status IMPLEMENTED or TESTING or COMPLIANT)
   const completedControls = controlInstances.filter(
-    (c) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
+    (c: ControlInstance) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
   );
 
   // Calculate percentage
@@ -248,9 +252,11 @@ export async function getClientComplianceProgress(clientId: string): Promise<num
 export async function getMspClientsWithProgress(mspOrganizationId: string) {
   const clients = await getMspClients(mspOrganizationId);
 
+  type Client = typeof clients[number];
+
   // Calculate compliance progress for each client
   const clientsWithProgress = await Promise.all(
-    clients.map(async (client) => {
+    clients.map(async (client: Client) => {
       const complianceProgress = await getClientComplianceProgress(client.id);
 
       // Get active projects count
@@ -280,6 +286,8 @@ export async function getMspClientsWithProgress(mspOrganizationId: string) {
 export async function getMspDashboardStats(mspOrganizationId: string) {
   const clients = await getMspClients(mspOrganizationId);
 
+  type Client = typeof clients[number];
+
   // Total active projects across all clients
   const activeProjects = await prisma.mspProject.count({
     where: {
@@ -291,11 +299,11 @@ export async function getMspDashboardStats(mspOrganizationId: string) {
   });
 
   // Total users across all clients
-  const totalUsers = clients.reduce((sum, client) => sum + client.members.length, 0);
+  const totalUsers = clients.reduce((sum: number, client: Client) => sum + client.members.length, 0);
 
   // Calculate average compliance across all clients
   const complianceScores = await Promise.all(
-    clients.map((client) => getClientComplianceProgress(client.id))
+    clients.map((client: Client) => getClientComplianceProgress(client.id))
   );
 
   const avgCompliance =

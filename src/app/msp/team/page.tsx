@@ -59,6 +59,7 @@ export default async function MspTeamPage() {
   });
 
   type TeamMember = typeof teamMembers[number];
+  type Invitation = typeof pendingInvitations[number];
 
   const totalMembers = teamMembers.length;
   const adminCount = teamMembers.filter((m: TeamMember) => m.role === "ADMIN" || m.role === "OWNER").length;
@@ -219,7 +220,7 @@ export default async function MspTeamPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {pendingInvitations.map((invitation) => (
+              {pendingInvitations.map((invitation: Invitation) => (
                 <div
                   key={invitation.id}
                   className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-4"

@@ -38,7 +38,7 @@ export async function GET(
     }
 
     const metadata = getAgentMetadata(agentType as any);
-    const implemented = agentFactory.isImplemented(agentType);
+    const implemented = agentFactory.isImplemented(agentType as any);
 
     return NextResponse.json({
       ...metadata,

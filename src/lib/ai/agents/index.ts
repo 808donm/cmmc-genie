@@ -4,8 +4,7 @@
  * Central access point for all AI agents in the system
  */
 
-import { BaseAgent } from "../base-agent";
-import { AgentType } from "@prisma/client";
+import { BaseAgent, AgentType } from "../base-agent";
 
 // Import all agents
 import { OrchestratorAgent } from "./orchestrator";
@@ -483,6 +482,9 @@ export function getAgentMetadata(type: AgentType): AgentMetadata {
 export function getOrchestrator(): OrchestratorAgent {
   return agentFactory.getAgent("ORCHESTRATOR") as OrchestratorAgent;
 }
+
+// Re-export types
+export type { AgentType } from "../base-agent";
 
 // Re-export agent classes for direct use
 export { OrchestratorAgent } from "./orchestrator";

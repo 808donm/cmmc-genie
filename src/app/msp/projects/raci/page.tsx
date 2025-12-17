@@ -70,9 +70,12 @@ export default async function RACIMatrixPage({
   });
 
   // Get all unique team members (users who have RACI assignments)
+  type Task = typeof tasks[number];
+  type RaciEntry = Task['raciEntries'][number];
+
   const teamMemberIds = new Set<string>();
-  tasks.forEach((task) => {
-    task.raciEntries.forEach((entry) => {
+  tasks.forEach((task: Task) => {
+    task.raciEntries.forEach((entry: RaciEntry) => {
       teamMemberIds.add(entry.userId);
     });
   });
@@ -110,11 +113,14 @@ export default async function RACIMatrixPage({
   });
 
   // Combine team members with org members (deduplicated)
+  type OrgMember = typeof orgMembers[number];
+  type User = OrgMember['user'];
+
   const allPeople = [
     ...teamMembers,
     ...orgMembers
-      .map((m) => m.user)
-      .filter((u) => !teamMemberIds.has(u.id)),
+      .map((m: OrgMember) => m.user)
+      .filter((u: User) => !teamMemberIds.has(u.id)),
   ];
 
   // Get all projects for filter

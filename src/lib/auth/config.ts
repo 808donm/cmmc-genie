@@ -76,7 +76,9 @@ export const authConfig = {
           },
         });
 
-        session.user.organizations = memberships.map((m) => ({
+        type Membership = typeof memberships[number];
+
+        session.user.organizations = memberships.map((m: Membership) => ({
           id: m.organizationId,
           name: m.organization.name,
           role: m.role,

@@ -81,6 +81,7 @@ export default async function MspReportsPage() {
 
   type Project = typeof projects[number];
   type Task = typeof tasks[number];
+  type Client = typeof clients[number];
 
   // Calculate statistics
   const totalClients = clients.length;
@@ -112,7 +113,7 @@ export default async function MspReportsPage() {
 
   // Calculate average project progress
   const avgProjectProgress = projects.length > 0
-    ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
+    ? Math.round(projects.reduce((sum: number, p: Project) => sum + p.progress, 0) / projects.length)
     : 0;
 
   return (
@@ -350,10 +351,10 @@ export default async function MspReportsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {clients.map((client) => {
+              {clients.map((client: Client) => {
                 const clientProjects = projects.filter((p: Project) => p.clientId === client.id);
                 const clientProgress = clientProjects.length > 0
-                  ? Math.round(clientProjects.reduce((sum, p) => sum + p.progress, 0) / clientProjects.length)
+                  ? Math.round(clientProjects.reduce((sum: number, p: Project) => sum + p.progress, 0) / clientProjects.length)
                   : 0;
                 const activeProjects = clientProjects.filter((p: Project) => p.status === "IN_PROGRESS").length;
                 const completedProjects = clientProjects.filter((p: Project) => p.status === "COMPLETED").length;

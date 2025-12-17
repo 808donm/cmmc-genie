@@ -1,48 +1,15 @@
-// Import Prisma types for local use
-import type {
-  Task,
-  Milestone,
-  RACIRole,
-  MeetingPlatform,
-  AgentType,
-} from "@prisma/client";
+// Define enum types locally (these match Prisma schema but aren't exported)
+export type RACIRole = "RESPONSIBLE" | "ACCOUNTABLE" | "CONSULTED" | "INFORMED";
+export type MeetingPlatform = "TEAMS" | "ZOOM" | "GOOGLE_MEET" | "OTHER";
 
-// Re-export Prisma types for convenience
-export type {
-  User,
-  Organization,
-  Project,
-  Task,
-  Roadmap,
-  Milestone,
-  TaskAssignment,
-  CMMCControl,
-  ControlInstance,
-  Evidence,
-  Meeting,
-  Policy,
-  Configuration,
-  Audit,
-  Vendor,
-  Risk,
-  Notification,
-} from "@prisma/client";
+// Import AgentType from where it's defined
+import type { AgentType } from "@/lib/ai/base-agent";
 
-export type {
-  UserRole,
-  OrgRole,
-  CMMCLevel,
-  ProjectStatus,
-  TaskStatus,
-  Priority,
-  RACIRole,
-  ControlStatus,
-  EvidenceType,
-  MeetingPlatform,
-  AgentType,
-  AuditType,
-  RiskLevel,
-} from "@prisma/client";
+// Note: Prisma model and enum types are not re-exported here due to export limitations
+// Import them directly from "@prisma/client" where needed
+
+// Re-export the locally defined/imported enum types
+export type { AgentType };
 
 // Custom types
 export interface DashboardStats {
@@ -57,7 +24,7 @@ export interface DashboardStats {
 export interface KanbanColumn {
   id: string;
   title: string;
-  tasks: Task[];
+  tasks: any[]; // Task model type not exported from Prisma
 }
 
 export interface GanttTask {
@@ -79,7 +46,7 @@ export interface RACIMatrix {
 export interface ComplianceRoadmap {
   phase: number;
   name: string;
-  milestones: Milestone[];
+  milestones: any[]; // Milestone model type not exported from Prisma
   progress: number;
   startDate: Date;
   endDate: Date;

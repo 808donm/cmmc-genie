@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import type { MeetingPlatform } from "@prisma/client";
+
+type MeetingPlatform = "TEAMS" | "ZOOM" | "GOOGLE_MEET" | "OTHER";
 
 export interface CalendarEvent {
   id: string;

@@ -6,7 +6,23 @@
 
 import { getAIProvider } from "./index";
 import { Message, CompletionOptions, CompletionResponse } from "./provider";
-import { AgentType } from "@prisma/client";
+
+// Define AgentType locally (matches Prisma schema enum)
+export type AgentType =
+  | "ORCHESTRATOR"
+  | "POLICY_DRAFTING"
+  | "C3PAO_EXPERT"
+  | "CONFIGURATION"
+  | "CUI_ANALYST"
+  | "EVIDENCE_COLLECTION"
+  | "GAP_ANALYSIS"
+  | "TRAINING"
+  | "VENDOR_ASSESSMENT"
+  | "INCIDENT_RESPONSE"
+  | "RISK_ASSESSMENT"
+  | "AUDIT_PREP"
+  | "COMPLIANCE_MONITORING"
+  | "CHANGE_MANAGEMENT";
 
 export interface AgentContext {
   organizationId?: string;
