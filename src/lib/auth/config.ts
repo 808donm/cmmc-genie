@@ -20,6 +20,7 @@ export const authConfig = {
           scope: "openid email profile https://www.googleapis.com/auth/gmail.send",
         },
       },
+      allowDangerousEmailAccountLinking: true,
     }),
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID || "",
@@ -30,6 +31,7 @@ export const authConfig = {
           scope: "openid profile email User.Read Organization.Read.All Mail.Send offline_access",
         },
       },
+      allowDangerousEmailAccountLinking: true,
     }),
     // Zoom OAuth provider (custom configuration)
     {
