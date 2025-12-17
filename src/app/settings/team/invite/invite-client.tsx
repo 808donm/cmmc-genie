@@ -48,6 +48,7 @@ export function InviteTeamMemberClient({ organization, pendingInvitations, curre
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [copiedToken, setCopiedToken] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +97,32 @@ export function InviteTeamMemberClient({ organization, pendingInvitations, curre
     navigator.clipboard.writeText(inviteLink);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(""), 2000);
+  };
+
+  const handleDeleteInvitation = async (invitationId: string) => {
+    if (!confirm("Are you sure you want to delete this invitation?")) {
+      return;
+    }
+
+    setDeletingId(invitationId);
+
+    try {
+      const response = await fetch(`/api/invitations/${invitationId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete invitation");
+      }
+
+      setSuccess("Invitation deleted successfully");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete invitation");
+    } finally {
+      setDeletingId("");
+    }
   };
 
   const selectedRoleLabel = ROLE_OPTIONS.find((r) => r.value === role)?.label || "Select role";
@@ -228,6 +255,14 @@ export function InviteTeamMemberClient({ organization, pendingInvitations, curre
                     >
                       <Copy className="mr-2 h-4 w-4" />
                       {copiedToken === invitation.token ? "Copied!" : "Copy Link"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteInvitation(invitation.id)}
+                      disabled={deletingId === invitation.id}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </div>
                 </div>
