@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Users, UserPlus, Mail, Shield, Crown } from "lucide-react";
 import Link from "next/link";
+import { PendingInvitationsCard } from "./pending-invitations-card";
 
 export default async function MspTeamPage() {
   const session = await auth();
@@ -209,47 +210,11 @@ export default async function MspTeamPage() {
       </Card>
 
       {/* Pending invitations */}
-      {pendingInvitations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Invitations</CardTitle>
-            <CardDescription>
-              Invitations waiting to be accepted
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingInvitations.map((invitation: Invitation) => (
-                <div
-                  key={invitation.id}
-                  className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
-                      <Mail className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-slate-900">{invitation.email}</h3>
-                      <p className="text-sm text-slate-500">
-                        Invited by {invitation.invitedBy?.name || invitation.invitedBy?.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${getRoleBadgeColor(invitation.role)}`}>
-                      {getRoleIcon(invitation.role)}
-                      {invitation.role}
-                    </span>
-                    <span className="text-sm text-slate-500">
-                      {new Date(invitation.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <PendingInvitationsCard
+        invitations={pendingInvitations}
+        getRoleBadgeColor={getRoleBadgeColor}
+        getRoleIcon={getRoleIcon}
+      />
     </div>
   );
 }

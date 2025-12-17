@@ -342,10 +342,13 @@ export default async function ClientDetailPage({ params }: PageProps) {
       <div className="rounded-lg border border-slate-200 bg-white p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-900">Team Members</h2>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <Link
+            href={`/msp/clients/${client.id}/invite`}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
             <Plus className="h-4 w-4" />
             Invite Member
-          </button>
+          </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {client.members.map((member: ClientMember) => (
