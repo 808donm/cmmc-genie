@@ -212,8 +212,6 @@ export default async function MspTeamPage() {
       {/* Pending invitations */}
       <PendingInvitationsCard
         invitations={pendingInvitations}
-        getRoleBadgeColor={getRoleBadgeColor}
-        getRoleIcon={getRoleIcon}
       />
     </div>
   );

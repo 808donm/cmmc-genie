@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Trash2 } from "lucide-react";
+import { Mail, Trash2, Crown, Shield, Users } from "lucide-react";
 
 type Invitation = {
   id: string;
@@ -19,11 +19,32 @@ type Invitation = {
 
 type Props = {
   invitations: Invitation[];
-  getRoleBadgeColor: (role: string) => string;
-  getRoleIcon: (role: string) => JSX.Element;
 };
 
-export function PendingInvitationsCard({ invitations, getRoleBadgeColor, getRoleIcon }: Props) {
+// Helper functions moved into the client component
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case "OWNER":
+      return <Crown className="h-4 w-4 text-amber-600" />;
+    case "ADMIN":
+      return <Shield className="h-4 w-4 text-blue-600" />;
+    default:
+      return <Users className="h-4 w-4 text-slate-600" />;
+  }
+};
+
+const getRoleBadgeColor = (role: string) => {
+  switch (role) {
+    case "OWNER":
+      return "bg-amber-100 text-amber-700";
+    case "ADMIN":
+      return "bg-blue-100 text-blue-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+};
+
+export function PendingInvitationsCard({ invitations }: Props) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
