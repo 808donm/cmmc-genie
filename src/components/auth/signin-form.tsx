@@ -1,21 +1,216 @@
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SignInFormProps {
   invitationToken?: string;
 }
 
 export function SignInForm({ invitationToken }: SignInFormProps) {
-  const handleOAuthSignIn = async (provider: "google" | "azure-ad" | "zoom") => {
+  const router = useRouter();
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleOAuthSignIn = async (provider: "google" | "azure-ad") => {
     const callbackUrl = invitationToken
       ? `/auth/accept-invitation?token=${invitationToken}`
       : "/dashboard";
 
     await signIn(provider, { callbackUrl });
   };
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/email/send-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send verification code");
+      }
+
+      // Show development code in console
+      if (data.code) {
+        console.log("Development - Verification code:", data.code);
+      }
+
+      setStep("code");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/email/verify-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Invalid verification code");
+      }
+
+      // Set the session cookie and redirect
+      document.cookie = `next-auth.session-token=${data.sessionToken}; path=/; max-age=${30 * 24 * 60 * 60}`;
+
+      const callbackUrl = invitationToken
+        ? `/auth/accept-invitation?token=${invitationToken}`
+        : "/dashboard";
+
+      router.push(callbackUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to verify code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (step === "code") {
+      setStep("email");
+      setCode("");
+      setError("");
+    } else {
+      setShowEmailForm(false);
+      setEmail("");
+      setError("");
+    }
+  };
+
+  if (showEmailForm) {
+    return (
+      <Card className="border-slate-200">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <CardTitle className="text-2xl">
+              {step === "email" ? "Sign in with Email" : "Enter Verification Code"}
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {step === "email"
+              ? "We'll send you a 6-digit verification code"
+              : `Code sent to ${email}`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
+          {step === "email" ? (
+            <form onSubmit={handleSendCode} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email Address
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Verification Code"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="code" className="text-sm font-medium">
+                  Verification Code
+                </label>
+                <Input
+                  id="code"
+                  type="text"
+                  placeholder="000000"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  required
+                  maxLength={6}
+                  className="h-12 text-center text-2xl tracking-widest"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the 6-digit code sent to your email
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12"
+                disabled={loading || code.length !== 6}
+              >
+                {loading ? "Verifying..." : "Verify & Sign In"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setStep("email");
+                  setCode("");
+                  setError("");
+                }}
+              >
+                Resend Code
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-slate-200">
@@ -69,30 +264,36 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
           Continue with Microsoft
         </Button>
 
-        <Button
-          variant="outline"
-          className="w-full h-12 text-base"
-          onClick={() => handleOAuthSignIn("zoom")}
-        >
-          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="#2D8CFF">
-            <path d="M4.115 4.115c-.8 0-1.448.648-1.448 1.448v8.158c0 .8.648 1.448 1.448 1.448h8.158c.8 0 1.448-.648 1.448-1.448V5.563c0-.8-.648-1.448-1.448-1.448H4.115zm11.61 2.068v8.157a.724.724 0 001.237.513l4.795-4.795a.725.725 0 000-1.025l-4.795-4.795a.724.724 0 00-1.237.513v1.432z"/>
-          </svg>
-          Continue with Zoom
-        </Button>
-
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Secure sign-in
+              Or
             </span>
           </div>
         </div>
 
+        <Button
+          variant="outline"
+          className="w-full h-12 text-base"
+          onClick={() => setShowEmailForm(true)}
+        >
+          <Mail className="mr-2 h-5 w-5" />
+          Continue with Email
+        </Button>
+
         <p className="px-8 text-center text-sm text-muted-foreground">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+          By signing in, you agree to our{" "}
+          <a href="/terms" className="underline hover:text-primary">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="underline hover:text-primary">
+            Privacy Policy
+          </a>
+          .
         </p>
       </CardContent>
     </Card>

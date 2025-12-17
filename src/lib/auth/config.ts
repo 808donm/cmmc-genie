@@ -33,28 +33,8 @@ export const authConfig = {
       },
       allowDangerousEmailAccountLinking: true,
     }),
-    // Zoom OAuth provider (custom configuration)
-    {
-      id: "zoom",
-      name: "Zoom",
-      type: "oauth",
-      authorization: {
-        url: "https://zoom.us/oauth/authorize",
-        params: { scope: "user:read" },
-      },
-      token: "https://zoom.us/oauth/token",
-      userinfo: "https://api.zoom.us/v2/users/me",
-      clientId: process.env.ZOOM_CLIENT_ID || "",
-      clientSecret: process.env.ZOOM_CLIENT_SECRET || "",
-      profile(profile) {
-        return {
-          id: profile.id,
-          name: `${profile.first_name} ${profile.last_name}`,
-          email: profile.email,
-          image: profile.pic_url,
-        };
-      },
-    },
+    // Zoom OAuth moved to in-app connection (not for sign-in)
+    // Users can connect Zoom account in settings for calendar integration
   ],
   callbacks: {
     async session({ session, user }) {
