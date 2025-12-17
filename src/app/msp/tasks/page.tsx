@@ -164,12 +164,14 @@ export default async function MspTasksPage({
     },
   });
 
+  type TeamMember = typeof teamMembers[number];
+
   return (
     <MspTasksClient
       tasks={tasks}
       projects={projects}
       clients={clients}
-      teamMembers={teamMembers.map((m) => m.user)}
+      teamMembers={teamMembers.map((m: TeamMember) => m.user)}
       filters={{
         projectId: searchParams.projectId,
         clientId: searchParams.clientId,

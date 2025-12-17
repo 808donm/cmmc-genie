@@ -76,6 +76,9 @@ export default async function ClientDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  type ClientProject = typeof client.mspClientProjects[number];
+  type ClientMember = typeof client.members[number];
+
   // Get control instances and calculate compliance by domain
   const controlInstances = await prisma.controlInstance.findMany({
     where: {
@@ -88,15 +91,17 @@ export default async function ClientDetailPage({ params }: PageProps) {
     },
   });
 
+  type ControlInstance = typeof controlInstances[number];
+
   const totalControls = controlInstances.length;
   const completedControls = controlInstances.filter(
-    (c) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
+    (c: ControlInstance) => c.status === "IMPLEMENTED" || c.status === "TESTING" || c.status === "COMPLIANT"
   ).length;
   const complianceProgress =
     totalControls > 0 ? Math.round((completedControls / totalControls) * 100) : 0;
 
   // Group controls by domain
-  const controlsByDomain = controlInstances.reduce((acc, instance) => {
+  const controlsByDomain = controlInstances.reduce((acc: any, instance: ControlInstance) => {
     const domain = instance.control.domain || "Other";
     if (!acc[domain]) {
       acc[domain] = { total: 0, completed: 0 };
@@ -109,12 +114,15 @@ export default async function ClientDetailPage({ params }: PageProps) {
   }, {} as Record<string, { total: number; completed: number }>);
 
   const domainStats = Object.entries(controlsByDomain).map(
-    ([domain, stats]) => ({
-      domain,
-      total: stats.total,
-      completed: stats.completed,
-      progress: Math.round((stats.completed / stats.total) * 100),
-    })
+    ([domain, stats]) => {
+      const typedStats = stats as { total: number; completed: number };
+      return {
+        domain,
+        total: typedStats.total,
+        completed: typedStats.completed,
+        progress: Math.round((typedStats.completed / typedStats.total) * 100),
+      };
+    }
   );
 
   // Get active project count
@@ -291,7 +299,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
             {client.mspClientProjects.length === 0 ? (
               <p className="text-sm text-slate-600">No active projects</p>
             ) : (
-              client.mspClientProjects.map((project) => (
+              client.mspClientProjects.map((project: ClientProject) => (
                 <div
                   key={project.id}
                   className="flex items-center justify-between rounded-lg border border-slate-200 p-3 hover:border-blue-300 transition-colors"
@@ -340,7 +348,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
           </button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {client.members.map((member) => (
+          {client.members.map((member: ClientMember) => (
             <div
               key={member.id}
               className="flex items-center gap-3 rounded-lg border border-slate-200 p-4"

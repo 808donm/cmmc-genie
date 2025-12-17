@@ -134,12 +134,14 @@ export default async function KanbanBoardPage({
     },
   });
 
+  type TeamMember = typeof teamMembers[number];
+
   return (
     <KanbanBoardClient
       initialTasks={tasks}
       projects={projects}
       clients={clients}
-      teamMembers={teamMembers.map((m) => m.user)}
+      teamMembers={teamMembers.map((m: TeamMember) => m.user)}
       currentProjectId={searchParams.projectId}
       currentClientId={searchParams.clientId}
     />

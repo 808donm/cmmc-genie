@@ -54,12 +54,14 @@ export default async function MspProjectsPage() {
     },
   });
 
+  type Project = typeof projects[number];
+
   // Calculate stats
   const stats = {
     total: projects.length,
-    active: projects.filter((p) => p.status === "ACTIVE").length,
-    atRisk: projects.filter((p) => p.status === "AT_RISK").length,
-    completed: projects.filter((p) => p.status === "COMPLETED").length,
+    active: projects.filter((p: Project) => p.status === "ACTIVE").length,
+    atRisk: projects.filter((p: Project) => p.status === "AT_RISK").length,
+    completed: projects.filter((p: Project) => p.status === "COMPLETED").length,
   };
 
   return (
@@ -191,7 +193,7 @@ export default async function MspProjectsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => {
+            {projects.map((project: Project) => {
               const getStatusColor = (status: string) => {
                 switch (status) {
                   case "ACTIVE":

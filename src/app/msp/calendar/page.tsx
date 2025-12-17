@@ -58,12 +58,14 @@ export default async function MspCalendarPage() {
     },
   });
 
+  type MeetingWithDetails = typeof meetings[number];
+
   // Separate upcoming and past meetings
   const now = new Date();
-  const upcomingMeetings = meetings.filter((m) => new Date(m.startTime) >= now);
-  const pastMeetings = meetings.filter((m) => new Date(m.startTime) < now);
+  const upcomingMeetings = meetings.filter((m: MeetingWithDetails) => new Date(m.startTime) >= now);
+  const pastMeetings = meetings.filter((m: MeetingWithDetails) => new Date(m.startTime) < now);
 
-  type MeetingWithDetails = typeof meetings[number];
+  type Attendee = MeetingWithDetails['attendees'][number];
 
   // Transform to calendar events
   const events = meetings.map((meeting: MeetingWithDetails) => ({
@@ -72,15 +74,15 @@ export default async function MspCalendarPage() {
     start: meeting.startTime,
     end: meeting.endTime,
     description: meeting.agenda || undefined,
-    attendees: meeting.attendees.map((a) => a.user.name).filter(Boolean) as string[],
+    attendees: meeting.attendees.map((a: Attendee) => a.user.name).filter(Boolean) as string[],
     platform: meeting.platform,
     meetingUrl: meeting.meetingUrl,
   }));
 
   // Calculate statistics
   const totalMeetings = meetings.length;
-  const uniqueClients = new Set(meetings.map((m) => m.project.organization.id)).size;
-  const meetingsThisWeek = meetings.filter((m) => {
+  const uniqueClients = new Set(meetings.map((m: MeetingWithDetails) => m.project.organization.id)).size;
+  const meetingsThisWeek = meetings.filter((m: MeetingWithDetails) => {
     const meetingDate = new Date(m.startTime);
     const weekFromNow = new Date();
     weekFromNow.setDate(weekFromNow.getDate() + 7);
@@ -154,7 +156,7 @@ export default async function MspCalendarPage() {
           <CardContent>
             <div className="space-y-1">
               {["TEAMS", "ZOOM", "GOOGLE_MEET", "OTHER"].map((platform) => {
-                const count = meetings.filter((m) => m.platform === platform).length;
+                const count = meetings.filter((m: MeetingWithDetails) => m.platform === platform).length;
                 if (count === 0) return null;
                 return (
                   <div key={platform} className="flex justify-between text-xs">

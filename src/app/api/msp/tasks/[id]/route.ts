@@ -45,9 +45,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
+    type Member = typeof task.project.mspOrganization.members[number];
+
     // Verify user has access to this MSP organization
     const hasAccess = task.project.mspOrganization.members.some(
-      (member) => member.userId === session.user.id
+      (member: Member) => member.userId === session.user.id
     );
 
     if (!hasAccess) {
@@ -159,9 +161,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
+    type DeleteMember = typeof task.project.mspOrganization.members[number];
+
     // Verify user has access
     const hasAccess = task.project.mspOrganization.members.some(
-      (member) => member.userId === session.user.id
+      (member: DeleteMember) => member.userId === session.user.id
     );
 
     if (!hasAccess) {
