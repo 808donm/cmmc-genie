@@ -90,8 +90,9 @@ export default async function MspReportsPage() {
 
   const projectsByStatus = {
     PLANNING: projects.filter((p: Project) => p.status === "PLANNING").length,
-    IN_PROGRESS: projects.filter((p: Project) => p.status === "IN_PROGRESS").length,
+    ACTIVE: projects.filter((p: Project) => p.status === "ACTIVE").length,
     ON_HOLD: projects.filter((p: Project) => p.status === "ON_HOLD").length,
+    AT_RISK: projects.filter((p: Project) => p.status === "AT_RISK").length,
     COMPLETED: projects.filter((p: Project) => p.status === "COMPLETED").length,
     CANCELLED: projects.filter((p: Project) => p.status === "CANCELLED").length,
   };
@@ -149,7 +150,7 @@ export default async function MspReportsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{totalProjects}</div>
             <p className="text-xs text-muted-foreground">
-              {projectsByStatus.IN_PROGRESS} in progress
+              {projectsByStatus.ACTIVE} active
             </p>
           </CardContent>
         </Card>
@@ -211,16 +212,16 @@ export default async function MspReportsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">In Progress</span>
+                  <span className="text-sm font-medium">Active</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-32 rounded-full bg-slate-200">
                     <div
                       className="h-2 rounded-full bg-green-600"
-                      style={{ width: `${totalProjects > 0 ? (projectsByStatus.IN_PROGRESS / totalProjects) * 100 : 0}%` }}
+                      style={{ width: `${totalProjects > 0 ? (projectsByStatus.ACTIVE / totalProjects) * 100 : 0}%` }}
                     />
                   </div>
-                  <span className="text-sm font-bold text-slate-900">{projectsByStatus.IN_PROGRESS}</span>
+                  <span className="text-sm font-bold text-slate-900">{projectsByStatus.ACTIVE}</span>
                 </div>
               </div>
 
@@ -237,6 +238,22 @@ export default async function MspReportsPage() {
                     />
                   </div>
                   <span className="text-sm font-bold text-slate-900">{projectsByStatus.ON_HOLD}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium">At Risk</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-32 rounded-full bg-slate-200">
+                    <div
+                      className="h-2 rounded-full bg-red-600"
+                      style={{ width: `${totalProjects > 0 ? (projectsByStatus.AT_RISK / totalProjects) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-slate-900">{projectsByStatus.AT_RISK}</span>
                 </div>
               </div>
 
@@ -356,7 +373,7 @@ export default async function MspReportsPage() {
                 const clientProgress = clientProjects.length > 0
                   ? Math.round(clientProjects.reduce((sum: number, p: Project) => sum + p.progress, 0) / clientProjects.length)
                   : 0;
-                const activeProjects = clientProjects.filter((p: Project) => p.status === "IN_PROGRESS").length;
+                const activeProjects = clientProjects.filter((p: Project) => p.status === "ACTIVE").length;
                 const completedProjects = clientProjects.filter((p: Project) => p.status === "COMPLETED").length;
 
                 return (
