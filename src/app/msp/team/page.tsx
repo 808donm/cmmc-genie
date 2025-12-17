@@ -97,7 +97,7 @@ export default async function MspTeamPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/settings/team/invite">
+          <Link href="/msp/settings/team/invite">
             <UserPlus className="mr-2 h-4 w-4" />
             Invite Team Member
           </Link>
