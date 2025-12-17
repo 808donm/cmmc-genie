@@ -88,6 +88,23 @@ export default function Home() {
               Built with Next.js 14, TypeScript, Prisma, and OpenAI
             </p>
           </div>
+
+          {/* Footer with legal links */}
+          <div className="mt-8 pt-8 border-t border-border">
+            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <Link href="/privacy" className="hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <span>•</span>
+              <Link href="/terms" className="hover:text-primary transition-colors">
+                Terms of Service
+              </Link>
+              <span>•</span>
+              <a href="mailto:info@ent-techsolutions.com" className="hover:text-primary transition-colors">
+                Contact Us
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </main>
