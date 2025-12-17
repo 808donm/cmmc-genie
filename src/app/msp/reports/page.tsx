@@ -100,12 +100,14 @@ export default async function MspReportsPage() {
   const tasksByStatus = {
     TODO: tasks.filter((t: Task) => t.status === "TODO").length,
     IN_PROGRESS: tasks.filter((t: Task) => t.status === "IN_PROGRESS").length,
+    UNDER_REVIEW: tasks.filter((t: Task) => t.status === "UNDER_REVIEW").length,
     BLOCKED: tasks.filter((t: Task) => t.status === "BLOCKED").length,
-    DONE: tasks.filter((t: Task) => t.status === "DONE").length,
+    COMPLETED: tasks.filter((t: Task) => t.status === "COMPLETED").length,
+    CANCELLED: tasks.filter((t: Task) => t.status === "CANCELLED").length,
   };
 
   const taskCompletionRate = totalTasks > 0
-    ? Math.round((tasksByStatus.DONE / totalTasks) * 100)
+    ? Math.round((tasksByStatus.COMPLETED / totalTasks) * 100)
     : 0;
 
   const projectCompletionRate = totalProjects > 0
@@ -176,7 +178,7 @@ export default async function MspReportsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{taskCompletionRate}%</div>
             <p className="text-xs text-muted-foreground">
-              {tasksByStatus.DONE} of {totalTasks} done
+              {tasksByStatus.COMPLETED} of {totalTasks} completed
             </p>
           </CardContent>
         </Card>
@@ -319,6 +321,22 @@ export default async function MspReportsPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium">Under Review</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-32 rounded-full bg-slate-200">
+                    <div
+                      className="h-2 rounded-full bg-purple-600"
+                      style={{ width: `${totalTasks > 0 ? (tasksByStatus.UNDER_REVIEW / totalTasks) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-slate-900">{tasksByStatus.UNDER_REVIEW}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-red-600" />
                   <span className="text-sm font-medium">Blocked</span>
                 </div>
@@ -336,16 +354,16 @@ export default async function MspReportsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">Done</span>
+                  <span className="text-sm font-medium">Completed</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-32 rounded-full bg-slate-200">
                     <div
                       className="h-2 rounded-full bg-green-600"
-                      style={{ width: `${totalTasks > 0 ? (tasksByStatus.DONE / totalTasks) * 100 : 0}%` }}
+                      style={{ width: `${totalTasks > 0 ? (tasksByStatus.COMPLETED / totalTasks) * 100 : 0}%` }}
                     />
                   </div>
-                  <span className="text-sm font-bold text-slate-900">{tasksByStatus.DONE}</span>
+                  <span className="text-sm font-bold text-slate-900">{tasksByStatus.COMPLETED}</span>
                 </div>
               </div>
             </div>
