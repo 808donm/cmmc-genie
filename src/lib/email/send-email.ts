@@ -21,27 +21,58 @@ export async function sendEmailViaOAuth(
   message: EmailMessage
 ): Promise<SendEmailResult> {
   try {
-    // Get user's account with OAuth tokens
-    const account = await prisma.account.findFirst({
+    // Get all user's OAuth accounts
+    const accounts = await prisma.account.findMany({
       where: {
         userId,
         provider: {
           in: ["azure-ad", "google"],
         },
-        access_token: {
-          not: null,
-        },
       },
       orderBy: {
-        // Prefer the most recently used account
         id: "desc",
       },
     });
 
+    if (accounts.length === 0) {
+      return {
+        success: false,
+        error: "No OAuth account found. Please sign in with Microsoft or Google.",
+      };
+    }
+
+    // Log account details for debugging (without exposing tokens)
+    console.log(`Found ${accounts.length} OAuth accounts for user ${userId}:`,
+      accounts.map(acc => ({
+        provider: acc.provider,
+        hasAccessToken: !!acc.access_token,
+        hasRefreshToken: !!acc.refresh_token,
+        expiresAt: acc.expires_at ? new Date(acc.expires_at * 1000).toISOString() : null,
+        isExpired: acc.expires_at ? acc.expires_at * 1000 < Date.now() : null,
+      }))
+    );
+
+    // Prefer accounts with refresh tokens and valid access tokens
+    const validAccount = accounts.find(
+      (acc) => acc.refresh_token && acc.access_token
+    );
+
+    // Fall back to any account with an access token
+    const account = validAccount || accounts.find((acc) => acc.access_token);
+
+    console.log(`Selected account: provider=${account?.provider}, hasRefreshToken=${!!account?.refresh_token}`);
+
     if (!account) {
       return {
         success: false,
-        error: "No OAuth account found with email permissions. Please sign in with Microsoft or Google.",
+        error: `Found ${accounts.length} OAuth account(s) but none have valid tokens. Please sign out and sign in again with Microsoft or Google to grant email permissions.`,
+      };
+    }
+
+    if (!account.access_token) {
+      return {
+        success: false,
+        error: "OAuth account found but missing access token. Please sign out and sign in again.",
       };
     }
 
