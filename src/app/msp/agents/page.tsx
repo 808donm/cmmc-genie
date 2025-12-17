@@ -87,33 +87,33 @@ export default function MspAgentsPage() {
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-slate-700">Client Management</h4>
               <ul className="space-y-1 text-sm text-slate-600">
-                <li>• "Show me clients at risk of missing their certification deadline"</li>
-                <li>• "Which clients have incomplete access control policies?"</li>
-                <li>• "Compare compliance progress across all clients"</li>
+                <li>• &quot;Show me clients at risk of missing their certification deadline&quot;</li>
+                <li>• &quot;Which clients have incomplete access control policies?&quot;</li>
+                <li>• &quot;Compare compliance progress across all clients&quot;</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-slate-700">Policy & Documentation</h4>
               <ul className="space-y-1 text-sm text-slate-600">
-                <li>• "Generate an incident response policy for healthcare client"</li>
-                <li>• "Create a configuration management plan template"</li>
-                <li>• "Draft security awareness training materials"</li>
+                <li>• &quot;Generate an incident response policy for healthcare client&quot;</li>
+                <li>• &quot;Create a configuration management plan template&quot;</li>
+                <li>• &quot;Draft security awareness training materials&quot;</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-slate-700">Assessment Support</h4>
               <ul className="space-y-1 text-sm text-slate-600">
-                <li>• "Prepare a C3PAO assessment checklist for XYZ Corp"</li>
-                <li>• "What evidence gaps exist across active projects?"</li>
-                <li>• "Generate pre-assessment readiness report"</li>
+                <li>• &quot;Prepare a C3PAO assessment checklist for XYZ Corp&quot;</li>
+                <li>• &quot;What evidence gaps exist across active projects?&quot;</li>
+                <li>• &quot;Generate pre-assessment readiness report&quot;</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-slate-700">Technical Guidance</h4>
               <ul className="space-y-1 text-sm text-slate-600">
-                <li>• "How to configure Azure AD for CMMC compliance?"</li>
-                <li>• "Best practices for encryption at rest and in transit"</li>
-                <li>• "Network segmentation requirements for Level 2"</li>
+                <li>• &quot;How to configure Azure AD for CMMC compliance?&quot;</li>
+                <li>• &quot;Best practices for encryption at rest and in transit&quot;</li>
+                <li>• &quot;Network segmentation requirements for Level 2&quot;</li>
               </ul>
             </div>
           </div>
