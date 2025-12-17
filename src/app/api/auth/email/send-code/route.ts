@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Generate 6-digit code
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Lazy initialization of Resend client
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 // POST /api/auth/email/send-code - Send verification code
@@ -44,11 +50,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Send email with verification code using Resend
-    try {
-      await resend.emails.send({
-        from: "CMMC Genie <noreply@cmmcgenie.app>",
-        to: email,
-        subject: "Your CMMC Genie Verification Code",
+    const resend = getResendClient();
+
+    if (resend) {
+      try {
+        await resend.emails.send({
+          from: "CMMC Genie <noreply@cmmcgenie.app>",
+          to: email,
+          subject: "Your CMMC Genie Verification Code",
         html: `
 <!DOCTYPE html>
 <html>
@@ -122,12 +131,17 @@ export async function POST(request: NextRequest) {
         `,
       });
 
-      console.log(`Verification code sent to ${email}`);
-    } catch (emailError) {
-      console.error("Failed to send email:", emailError);
-      // Don't fail the request if email sending fails - still return success
-      // In development, we can still use the code from the response
+        console.log(`Verification code sent to ${email}`);
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Don't fail the request if email sending fails - still return success
+        // In development, we can still use the code from the response
+        console.log(`Verification code for ${email}: ${code}`);
+      }
+    } else {
+      // Resend not configured - log code to console for development
       console.log(`Verification code for ${email}: ${code}`);
+      console.warn("RESEND_API_KEY not configured - email not sent");
     }
 
     return NextResponse.json({
