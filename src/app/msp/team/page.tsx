@@ -30,12 +30,11 @@ export default async function MspTeamPage() {
           name: true,
           email: true,
           image: true,
-          createdAt: true,
         },
       },
     },
     orderBy: {
-      createdAt: "asc",
+      joinedAt: "asc",
     },
   });
 
@@ -201,7 +200,7 @@ export default async function MspTeamPage() {
                   </div>
                 </div>
                 <div className="text-right text-sm text-slate-500">
-                  Joined {new Date(member.createdAt).toLocaleDateString()}
+                  Joined {new Date(member.joinedAt).toLocaleDateString()}
                 </div>
               </div>
             ))}
