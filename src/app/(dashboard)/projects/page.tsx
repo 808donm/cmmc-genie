@@ -87,6 +87,63 @@ export default async function ProjectsPage() {
           ))}
         </div>
       )}
+
+      {/* Delivery views */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Kanban Board</CardTitle>
+            <CardDescription>Track project tasks by status</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {["Backlog", "In Progress", "Review", "Done"].map((column) => (
+              <div key={column} className="rounded-lg border border-slate-200 p-3">
+                <div className="text-sm font-semibold text-slate-900">{column}</div>
+                <p className="text-xs text-slate-500">Drag-and-drop task planning</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Gantt Timeline</CardTitle>
+            <CardDescription>Visualize milestones across weeks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {["Gap Analysis", "Remediation", "Policy Updates", "Assessment Prep"].map((item, index) => (
+              <div key={item} className="space-y-2 rounded-lg border border-slate-200 p-3">
+                <div className="flex items-center justify-between text-sm font-medium text-slate-900">
+                  <span>{item}</span>
+                  <span className="text-xs text-slate-500">Week {index + 1}-{index + 2}</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-blue-600" style={{ width: `${40 + index * 10}%` }} />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>RACI Matrix</CardTitle>
+            <CardDescription>Clarify ownership for controls</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              { label: "System Security Plan", roles: "R: PM · A: CISO · C: IT · I: Auditor" },
+              { label: "Incident Response Playbooks", roles: "R: IR Lead · A: CISO · C: HR · I: Legal" },
+              { label: "Vulnerability Scans", roles: "R: IT Ops · A: CISO · C: PM · I: Exec" },
+            ].map((row) => (
+              <div key={row.label} className="space-y-1 rounded-lg border border-slate-200 p-3">
+                <div className="text-sm font-semibold text-slate-900">{row.label}</div>
+                <p className="text-xs text-slate-600">{row.roles}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
