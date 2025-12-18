@@ -199,6 +199,22 @@ export const authConfig = {
         });
 
         if (!existingMembership) {
+          // FIX: Check if user has a pending invitation first
+          // If they do, don't auto-create an organization - let them accept the invitation
+          const pendingInvitation = await prisma.invitation.findFirst({
+            where: {
+              email: user.email?.toLowerCase(),
+              status: "PENDING",
+              expiresAt: { gt: new Date() },
+            },
+          });
+
+          // If user has a pending invitation, skip auto-org creation
+          // They should accept the invitation to join the correct organization
+          if (pendingInvitation) {
+            return token;
+          }
+
           // Extract organization name from OAuth provider or email
           let orgName = "";
           let orgSlug = "";
