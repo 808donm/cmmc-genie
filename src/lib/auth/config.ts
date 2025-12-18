@@ -147,6 +147,28 @@ export const authConfig = {
         return false;
       }
 
+      // Invite-only system: Check if user exists or has a pending invitation
+      // Skip this check for credentials provider (already checked in send-code)
+      if (account && account.provider !== "credentials") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email.toLowerCase() },
+        });
+
+        const pendingInvitation = await prisma.invitation.findFirst({
+          where: {
+            email: user.email.toLowerCase(),
+            status: "PENDING",
+            expiresAt: { gt: new Date() },
+          },
+        });
+
+        // Only allow OAuth sign-in for existing users or users with invitations
+        if (!existingUser && !pendingInvitation) {
+          // Return false to deny sign-in
+          return false;
+        }
+      }
+
       // Handle account linking: if user exists but account doesn't, link them
       if (account && user.email) {
         const existingUser = await prisma.user.findUnique({

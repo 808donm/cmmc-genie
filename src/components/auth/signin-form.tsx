@@ -40,7 +40,10 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          ...(invitationToken && { invitationToken }),
+        }),
       });
 
       const data = await response.json();

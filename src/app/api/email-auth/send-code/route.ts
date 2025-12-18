@@ -18,12 +18,42 @@ function getResendClient() {
 // POST /api/email-auth/send-code - Send verification code
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, invitationToken } = await request.json();
 
     if (!email || !email.includes("@")) {
       return NextResponse.json(
         { error: "Valid email address is required" },
         { status: 400 }
+      );
+    }
+
+    // Check if user exists or has a pending invitation (invite-only system)
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    const pendingInvitation = await prisma.invitation.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        status: "PENDING",
+        expiresAt: { gt: new Date() },
+        ...(invitationToken && { token: invitationToken }),
+      },
+    });
+
+    // Only allow sign-in for existing users or users with invitations
+    if (!existingUser && !pendingInvitation) {
+      return NextResponse.json(
+        { error: "No account found. CMMC Genie is invite-only. Please contact your administrator for an invitation." },
+        { status: 403 }
+      );
+    }
+
+    // If invitation token provided, verify it matches
+    if (invitationToken && pendingInvitation && pendingInvitation.token !== invitationToken) {
+      return NextResponse.json(
+        { error: "Invalid invitation" },
+        { status: 403 }
       );
     }
 
