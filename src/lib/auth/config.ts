@@ -50,8 +50,9 @@ export const authConfig = {
           });
 
           // Create personal organization
-          const orgName = `${credentials.email.split("@")[0]}'s Organization`;
-          const orgSlug = credentials.email
+          const email = credentials.email as string;
+          const orgName = `${email.split("@")[0]}'s Organization`;
+          const orgSlug = email
             .split("@")[0]
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-");
