@@ -64,14 +64,15 @@ export async function POST(request: NextRequest) {
     });
 
     // Create a notification for the MSP
+    // TODO: Send notification to MSP admin users instead of project creator
     await prisma.notification.create({
       data: {
-        userId: session.user.id, // Temporarily using same user; MSP should get this
-        organizationId: mspOrganizationId,
+        userId: session.user.id,
         type: "PROJECT_UPDATE",
         title: "New Project Request",
         message: `${session.user.name || session.user.email} has requested a new project: ${name}`,
-        actionUrl: `/msp/projects/${project.id}`,
+        entityType: "MspProject",
+        entityId: project.id,
       },
     });
 
