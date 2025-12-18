@@ -122,13 +122,14 @@ export const authConfig = {
     // Users can connect Zoom account in settings for calendar integration
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    async session({ session, token }) {
+      // With JWT sessions, user data comes from the token
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
 
         // Get full user data including role
         const fullUser = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.sub },
           select: { role: true },
         });
 
@@ -138,7 +139,7 @@ export const authConfig = {
 
         // Get user's organization memberships
         const memberships = await prisma.organizationMember.findMany({
-          where: { userId: user.id },
+          where: { userId: token.sub },
           include: {
             organization: true,
           },
