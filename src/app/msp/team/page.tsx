@@ -152,6 +152,7 @@ export default async function MspTeamPage() {
         organizationId={mspOrg.id}
         currentUserId={session.user.id}
         currentUserRole={currentUserMembership?.role || "MEMBER"}
+        globalUserRole={session.user.role}
       />
 
       {/* Pending invitations */}

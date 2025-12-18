@@ -15,7 +15,9 @@ export async function DELETE(
 
     const { id: organizationId, memberId } = params;
 
-    // Check if current user is admin or owner of the organization
+    // Check if user is global admin or organization admin/owner
+    const isGlobalAdmin = session.user.role === "SUPER_ADMIN";
+
     const currentUserMembership = await prisma.organizationMember.findFirst({
       where: {
         userId: session.user.id,
@@ -24,7 +26,8 @@ export async function DELETE(
       },
     });
 
-    if (!currentUserMembership) {
+    // Global admins can manage any org, org admins can only manage their own org
+    if (!isGlobalAdmin && !currentUserMembership) {
       return NextResponse.json(
         { error: "You must be an admin or owner to remove members" },
         { status: 403 }
@@ -52,9 +55,10 @@ export async function DELETE(
       );
     }
 
-    // Prevent admins from removing owners
+    // Prevent org admins from removing owners (but allow global admins)
     if (
-      currentUserMembership.role === "ADMIN" &&
+      !isGlobalAdmin &&
+      currentUserMembership?.role === "ADMIN" &&
       memberToRemove.role === "OWNER"
     ) {
       return NextResponse.json(

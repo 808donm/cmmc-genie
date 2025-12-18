@@ -25,6 +25,7 @@ interface TeamMembersCardProps {
   organizationId: string;
   currentUserId: string;
   currentUserRole: string;
+  globalUserRole?: string;
 }
 
 export function TeamMembersCard({
@@ -32,11 +33,13 @@ export function TeamMembersCard({
   organizationId,
   currentUserId,
   currentUserRole,
+  globalUserRole,
 }: TeamMembersCardProps) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const canDelete = currentUserRole === "ADMIN" || currentUserRole === "OWNER";
+  const isGlobalAdmin = globalUserRole === "SUPER_ADMIN";
+  const canDelete = isGlobalAdmin || currentUserRole === "ADMIN" || currentUserRole === "OWNER";
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -122,7 +125,7 @@ export function TeamMembersCard({
             const canDeleteThisMember =
               canDelete &&
               !isCurrentUser &&
-              !(currentUserRole === "ADMIN" && member.role === "OWNER");
+              !(currentUserRole === "ADMIN" && member.role === "OWNER" && !isGlobalAdmin);
 
             return (
               <div
