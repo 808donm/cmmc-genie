@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { ClientTeamMembers } from "./client-team-members";
 
 interface PageProps {
   params: { id: string };
@@ -339,43 +340,12 @@ export default async function ClientDetailPage({ params }: PageProps) {
       </div>
 
       {/* Team Members */}
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Team Members</h2>
-          <Link
-            href={`/msp/clients/${client.id}/invite`}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            <Plus className="h-4 w-4" />
-            Invite Member
-          </Link>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {client.members.map((member: ClientMember) => (
-            <div
-              key={member.id}
-              className="flex items-center gap-3 rounded-lg border border-slate-200 p-4"
-            >
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <span className="text-sm font-medium text-blue-600">
-                  {member.user.name?.charAt(0) || member.user.email?.charAt(0) || "?"}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">
-                  {member.user.name || "Unnamed User"}
-                </p>
-                <p className="text-xs text-slate-600 truncate">
-                  {member.user.email || "No email"}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  {member.role || "MEMBER"}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ClientTeamMembers
+        clientId={client.id}
+        members={client.members}
+        currentUserId={session.user.id}
+        globalUserRole={session.user.role}
+      />
     </div>
   );
 }
