@@ -82,14 +82,14 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
         throw new Error(data.error || "Invalid verification code");
       }
 
-      // Set the session cookie and redirect
-      document.cookie = `next-auth.session-token=${data.sessionToken}; path=/; max-age=${30 * 24 * 60 * 60}`;
-
+      // Session cookie is set by the server
+      // Redirect to callback URL
       const callbackUrl = invitationToken
         ? `/auth/accept-invitation?token=${invitationToken}`
         : "/dashboard";
 
-      router.push(callbackUrl);
+      // Force a hard redirect to ensure session is loaded
+      window.location.href = callbackUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to verify code");
     } finally {

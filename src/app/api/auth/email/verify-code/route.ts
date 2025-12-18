@@ -100,8 +100,6 @@ export async function POST(request: NextRequest) {
     });
 
     // Create session
-    // Note: NextAuth doesn't have a direct API for creating sessions from custom flows
-    // We'll need to create a session manually
     const sessionToken = crypto.randomUUID();
     const sessionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
@@ -113,11 +111,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    // Create response with session cookie
+    const response = NextResponse.json({
       success: true,
-      sessionToken,
       userId: user.id,
     });
+
+    // Set the session cookie with proper security attributes
+    // NextAuth uses this cookie name for database sessions
+    const cookieName = process.env.NODE_ENV === "production"
+      ? "__Secure-next-auth.session-token"
+      : "next-auth.session-token";
+
+    response.cookies.set(cookieName, sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (error) {
     console.error("Error verifying code:", error);
     return NextResponse.json(
