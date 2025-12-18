@@ -23,7 +23,7 @@ export function AcceptInvitationContent() {
       }
 
       try {
-        const response = await fetch(`/api/invitations/${token}/accept`, {
+        const response = await fetch(`/api/invitations/accept/${token}`, {
           method: "POST",
         });
 
