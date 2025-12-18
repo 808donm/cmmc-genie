@@ -48,27 +48,8 @@ export const authConfig = {
               emailVerified: new Date(),
             },
           });
-
-          // Create personal organization
-          const email = credentials.email as string;
-          const orgName = `${email.split("@")[0]}'s Organization`;
-          const orgSlug = email
-            .split("@")[0]
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-");
-
-          await prisma.organization.create({
-            data: {
-              name: orgName,
-              slug: orgSlug,
-              members: {
-                create: {
-                  userId: user.id,
-                  role: "ADMIN",
-                },
-              },
-            },
-          });
+          // Organization will be created in jwt callback if needed
+          // This allows users with invitations to join the invited org first
         } else if (!user.emailVerified) {
           await prisma.user.update({
             where: { id: user.id },
@@ -190,19 +171,19 @@ export const authConfig = {
     },
     async jwt({ token, user, account, profile }) {
       // After first sign-in, create/join organization
-      if (user && user.id && account && profile) {
+      if (user && user.id) {
         const existingMembership = await prisma.organizationMember.findFirst({
           where: { userId: user.id },
         });
 
         if (!existingMembership) {
-          // Extract organization name from OAuth provider
+          // Extract organization name from OAuth provider or email
           let orgName = "";
           let orgSlug = "";
           let tenantId = "";
 
           // For Microsoft/Azure AD - fetch actual organization name from Microsoft Graph
-          if (account.provider === "azure-ad" && account.access_token) {
+          if (account?.provider === "azure-ad" && account.access_token) {
             try {
               // Get tenant ID from profile or token
               tenantId = (profile as any).tid || "";
@@ -230,8 +211,8 @@ export const authConfig = {
             }
 
             // Fallback to domain-based naming if Graph API fails
-            if (!orgName && profile.email) {
-              const domain = profile.email.split("@")[1];
+            if (!orgName && profile && (profile as any).email) {
+              const domain = (profile as any).email.split("@")[1];
               orgName = domain
                 .split(".")[0]
                 .replace(/[-_]/g, " ")
@@ -242,8 +223,8 @@ export const authConfig = {
             }
           }
           // For Google - use domain if not gmail
-          else if (account.provider === "google" && profile.email) {
-            const domain = profile.email.split("@")[1];
+          else if (account?.provider === "google" && profile && (profile as any).email) {
+            const domain = (profile as any).email.split("@")[1];
             if (domain !== "gmail.com") {
               orgName = domain
                 .split(".")[0]
@@ -261,7 +242,7 @@ export const authConfig = {
                 .replace(/^-|-$/g, "");
             }
           }
-          // For other providers - create personal org
+          // For email auth or other providers - create personal org
           else {
             orgName = `${user.name || user.email}'s Organization`;
             orgSlug = (user.name || user.email || "user")
