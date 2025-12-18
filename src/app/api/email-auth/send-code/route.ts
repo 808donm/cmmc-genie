@@ -15,7 +15,7 @@ function getResendClient() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
-// POST /api/auth/email/send-code - Send verification code
+// POST /api/email-auth/send-code - Send verification code
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();

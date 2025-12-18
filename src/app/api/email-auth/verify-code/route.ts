@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { signIn } from "@/lib/auth/auth";
 
-// POST /api/auth/email/verify-code - Verify code and sign in
+// POST /api/email-auth/verify-code - Verify code and sign in
 export async function POST(request: NextRequest) {
   try {
     const { email, code } = await request.json();

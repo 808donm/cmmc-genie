@@ -35,7 +35,7 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/email/send-code", {
+      const response = await fetch("/api/email-auth/send-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/email/verify-code", {
+      const response = await fetch("/api/email-auth/verify-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
