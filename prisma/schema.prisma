@@ -69,6 +69,7 @@ model User {
   sentInvitations    Invitation[]         @relation("InvitedBy")
 
   // MSP Project Management
+  mspProjectsCreated MspProject[]   @relation("MspProjectCreator") // MSP projects created by this user
   mspTasksAssigned   MspTask[]      @relation("MspTaskAssignee") // MSP PM tasks assigned to this user
   mspRaciEntries     MspRACIEntry[] // MSP RACI assignments for this user
 
@@ -1139,8 +1140,10 @@ model MspProject {
   description       String?          @db.Text
   clientId          String           // Client organization
   mspOrganizationId String           // MSP organization managing this project
+  createdById       String           // User who created this project
   status            MspProjectStatus @default(PLANNING)
   priority          MspPriority      @default(MEDIUM)
+  cmmcLevel         CMMCLevel?       // Target CMMC level for this project
   startDate         DateTime?
   targetDate        DateTime?
   completedDate     DateTime?
@@ -1151,6 +1154,7 @@ model MspProject {
   // Relations
   client          Organization      @relation("MspProjectClient", fields: [clientId], references: [id], onDelete: Cascade)
   mspOrganization Organization      @relation("MspProjectMSP", fields: [mspOrganizationId], references: [id], onDelete: Cascade)
+  createdBy       User              @relation("MspProjectCreator", fields: [createdById], references: [id])
 
   tasks       MspTask[]
   milestones  MspMilestone[]
