@@ -13,10 +13,16 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function MspDashboardPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
+
+  // Redirect new users to complete their profile
+  if (!session?.user?.name) {
+    redirect("/settings?onboarding=true");
+  }
 
   const mspOrg = await getMspOrganization(session.user.id);
   if (!mspOrg) return <div>No MSP organization found</div>;

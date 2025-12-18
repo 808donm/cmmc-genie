@@ -12,6 +12,11 @@ export default async function DashboardPage() {
   const organizationId = session?.user.activeOrganization;
   const isSuperAdmin = session?.user.role === "SUPER_ADMIN";
 
+  // Redirect new users to complete their profile
+  if (session?.user?.id && !session?.user?.name) {
+    redirect("/settings?onboarding=true");
+  }
+
   // Redirect MSP users to MSP dashboard
   if (session?.user?.id) {
     const isMsp = await shouldShowMspDashboard(session.user.id);

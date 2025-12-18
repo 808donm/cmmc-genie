@@ -50,6 +50,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  position      String?   // Job title/position
   role          UserRole  @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

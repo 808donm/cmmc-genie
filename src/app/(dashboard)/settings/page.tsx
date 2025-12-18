@@ -1,13 +1,27 @@
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Bell, Shield } from "lucide-react";
+import { Bell, Shield } from "lucide-react";
 import { EditButton } from "@/components/settings/edit-button";
 import { OrganizationSettingsSection } from "@/components/settings/organization-settings-section";
+import { ProfileSettings } from "@/components/settings/profile-settings";
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
+
+  // Get full user data including position
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      position: true,
+    },
+  });
+
+  if (!user) return null;
 
   // Get user's organization
   const orgMembership = await prisma.organizationMember.findFirst({
@@ -37,32 +51,7 @@ export default async function SettingsPage() {
       {/* Settings sections */}
       <div className="grid gap-6">
         {/* Profile settings */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600" />
-              <CardTitle>Profile Settings</CardTitle>
-            </div>
-            <CardDescription>Manage your personal information and preferences</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-slate-700">Name</label>
-                <p className="mt-1 text-sm text-slate-900">{session.user.name || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700">Email</label>
-                <p className="mt-1 text-sm text-slate-900">{session.user.email || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700">Role</label>
-                <p className="mt-1 text-sm text-slate-900">{orgMembership?.role || "N/A"}</p>
-              </div>
-            </div>
-            <EditButton label="Edit Profile" feature="Profile editing" variant="outline" />
-          </CardContent>
-        </Card>
+        <ProfileSettings user={user} orgRole={orgMembership?.role} />
 
         {/* Organization settings */}
         <OrganizationSettingsSection
