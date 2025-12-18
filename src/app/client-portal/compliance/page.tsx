@@ -294,9 +294,9 @@ export default async function ClientCompliancePage() {
                             </span>
                           </div>
                         )}
-                        {instance.notes && (
+                        {instance.implementationNotes && (
                           <div className="mt-2 rounded-lg bg-blue-50 border border-blue-200 p-2">
-                            <p className="text-xs text-blue-900">{instance.notes}</p>
+                            <p className="text-xs text-blue-900">{instance.implementationNotes}</p>
                           </div>
                         )}
                       </div>
