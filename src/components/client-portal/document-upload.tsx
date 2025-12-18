@@ -91,7 +91,7 @@ export function DocumentUploadSection({
             <option value="">Choose a control...</option>
             {controls.map((control) => (
               <option key={control.id} value={control.id}>
-                {control.control.controlId} - {control.control.domain} (
+                {control.control.id} - {control.control.domain} (
                 {control.evidence.length} evidence)
               </option>
             ))}

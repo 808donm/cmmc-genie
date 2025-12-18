@@ -65,7 +65,7 @@ export default async function ClientDocumentsPage() {
         include: {
           control: {
             select: {
-              controlId: true,
+              id: true,
               practice: true,
               domain: true,
             },
@@ -91,7 +91,7 @@ export default async function ClientDocumentsPage() {
     include: {
       control: {
         select: {
-          controlId: true,
+          id: true,
           practice: true,
           domain: true,
         },
@@ -100,7 +100,7 @@ export default async function ClientDocumentsPage() {
     },
     orderBy: {
       control: {
-        controlId: "asc",
+        id: "asc",
       },
     },
   });
@@ -249,7 +249,7 @@ export default async function ClientDocumentsPage() {
                     <td className="px-6 py-4">
                       <div>
                         <p className="text-sm font-medium text-slate-900">
-                          {doc.controlInstance.control.controlId}
+                          {doc.controlInstance.control.id}
                         </p>
                         <p className="text-xs text-slate-500">
                           {doc.controlInstance.control.domain}

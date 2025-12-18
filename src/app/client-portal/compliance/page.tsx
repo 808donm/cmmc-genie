@@ -61,7 +61,7 @@ export default async function ClientCompliancePage() {
     include: {
       control: {
         select: {
-          controlId: true,
+          id: true,
           practice: true,
           domain: true,
           level: true,
@@ -78,7 +78,7 @@ export default async function ClientCompliancePage() {
     },
     orderBy: {
       control: {
-        controlId: "asc",
+        id: "asc",
       },
     },
   });
@@ -271,10 +271,10 @@ export default async function ClientCompliancePage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <span className="font-mono text-sm font-semibold text-blue-600">
-                            {instance.control.controlId}
+                            {instance.control.id}
                           </span>
                           <span className="text-xs text-slate-500">
-                            Level {instance.control.level.replace("LEVEL_", "")}
+                            Level {instance.control.level}
                           </span>
                         </div>
                         <p className="text-sm text-slate-900 mb-2">
