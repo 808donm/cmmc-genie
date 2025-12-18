@@ -81,11 +81,18 @@ cp .env.example .env.local
 # Set up database
 npx prisma migrate dev
 
+# Seed demo data (optional)
+npm run db:seed
+
 # Run development server
 npm run dev
 ```
 
 Visit `http://localhost:3000` to see the application.
+
+## Developer commands
+
+- `npm run check` – Validate the Prisma schema, lint the codebase, and run Next.js type checks in one step (ideal for CI gates).
 
 ## Project Structure
 
@@ -115,29 +122,52 @@ cmmc-genie/
 
 ```env
 # Database
-DATABASE_URL="postgresql://..."
+DATABASE_URL="postgresql://user:password@localhost:5432/cmmc_genie?schema=public"
 
-# NextAuth
+# NextAuth (v5)
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_SECRET="your-secret-key-here"
+AUTH_SECRET="your-secret-key-here"
 
 # OAuth Providers
-MICROSOFT_CLIENT_ID="..."
-MICROSOFT_CLIENT_SECRET="..."
+AZURE_AD_CLIENT_ID="..."    # Entra ID sign-in + Graph calendar
+AZURE_AD_CLIENT_SECRET="..."
+AZURE_AD_TENANT_ID="common"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
-ZOOM_CLIENT_ID="..."
+ZOOM_CLIENT_ID="..."        # For meeting/calendar integration
 ZOOM_CLIENT_SECRET="..."
 
-# AI APIs
-ANTHROPIC_API_KEY="..."
+# AI Providers
+AI_PROVIDER="openai"        # openai | anthropic
 OPENAI_API_KEY="..."
+OPENAI_MODEL="gpt-4o"
+ANTHROPIC_API_KEY=""        # optional
+ANTHROPIC_MODEL="claude-3-5-sonnet-20241022"
 
-# External Services
+# Email + notifications
+RESEND_API_KEY="..."        # verification codes
 SENDGRID_API_KEY="..."
+
+# Storage (S3/R2)
 AWS_ACCESS_KEY_ID="..."
 AWS_SECRET_ACCESS_KEY="..."
+AWS_REGION="us-east-1"
+AWS_S3_BUCKET="cmmc-genie-uploads"
+
+CLOUDFLARE_ACCOUNT_ID=""
+CLOUDFLARE_ACCESS_KEY_ID=""
+CLOUDFLARE_SECRET_ACCESS_KEY=""
+R2_BUCKET_NAME=""
+
+# Feature flags
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_ENABLE_AI_AGENTS="true"
+NEXT_PUBLIC_ENABLE_CALENDAR_INTEGRATION="true"
+NEXT_PUBLIC_ENABLE_TRANSCRIPTION="true"
 ```
+
+See `.env.example` for the full, annotated list of optional integrations (Pinecone, Sentry, GoHighLevel, transcription providers, and webhook secrets).
 
 ## Development Roadmap
 

@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check": "prisma validate && next lint && next check",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
     "make-super-admin": "tsx scripts/make-super-admin.ts",
     "seed:cmmc": "tsx scripts/seed-cmmc-controls.ts",
     "seed:cmmc-sql": "node scripts/seed-cmmc-controls-sql.js"
