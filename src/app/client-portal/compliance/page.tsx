@@ -39,10 +39,24 @@ export default async function ClientCompliancePage() {
 
   const orgId = membership.organizationId;
 
-  // Get control instances for this organization
-  const controlInstances = await prisma.controlInstance.findMany({
+  // Get projects for this organization first
+  const projects = await prisma.project.findMany({
     where: {
       organizationId: orgId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const projectIds = projects.map((p) => p.id);
+
+  // Get control instances for these projects
+  const controlInstances = await prisma.controlInstance.findMany({
+    where: {
+      projectId: {
+        in: projectIds,
+      },
     },
     include: {
       control: {

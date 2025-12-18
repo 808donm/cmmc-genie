@@ -41,18 +41,26 @@ export default async function ClientDocumentsPage() {
 
   const orgId = membership.organizationId;
 
-  // Get all evidence/documents for this client
-  const documents = await prisma.evidence.findMany({
+  // Get projects for this organization first
+  const projects = await prisma.project.findMany({
     where: {
       organizationId: orgId,
     },
-    include: {
-      uploadedBy: {
-        select: {
-          name: true,
-          email: true,
-        },
+    select: {
+      id: true,
+    },
+  });
+
+  const projectIds = projects.map((p) => p.id);
+
+  // Get all evidence/documents for these projects
+  const documents = await prisma.evidence.findMany({
+    where: {
+      projectId: {
+        in: projectIds,
       },
+    },
+    include: {
       controlInstance: {
         include: {
           control: {
@@ -73,7 +81,9 @@ export default async function ClientDocumentsPage() {
   // Get controls that need evidence
   const controlInstances = await prisma.controlInstance.findMany({
     where: {
-      organizationId: orgId,
+      projectId: {
+        in: projectIds,
+      },
       status: {
         not: "COMPLIANT",
       },
@@ -248,12 +258,12 @@ export default async function ClientDocumentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                        {doc.fileType}
+                        {doc.type}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-slate-900">
-                        {doc.uploadedBy.name || doc.uploadedBy.email}
+                        {doc.uploadedBy || "Unknown"}
                       </p>
                     </td>
                     <td className="px-6 py-4">
@@ -263,21 +273,27 @@ export default async function ClientDocumentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <a
-                          href={doc.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-blue-600"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </a>
-                        <a
-                          href={doc.fileUrl}
-                          download
-                          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-blue-600"
-                        >
-                          <Download className="h-4 w-4" />
-                        </a>
+                        {doc.fileUrl ? (
+                          <>
+                            <a
+                              href={doc.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </a>
+                            <a
+                              href={doc.fileUrl}
+                              download
+                              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          </>
+                        ) : (
+                          <span className="text-xs text-slate-400">No file</span>
+                        )}
                       </div>
                     </td>
                   </tr>
