@@ -25,6 +25,7 @@ export function AcceptInvitationContent() {
       try {
         const response = await fetch(`/api/invitations/accept/${token}`, {
           method: "POST",
+          credentials: "include", // Ensure cookies are sent
         });
 
         const data = await response.json();

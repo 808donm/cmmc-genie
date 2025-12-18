@@ -1,6 +1,7 @@
 import { NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 
@@ -9,6 +10,89 @@ export const authConfig = {
   trustHost: true,
   adapter: PrismaAdapter(prisma),
   providers: [
+    CredentialsProvider({
+      id: "email-verification",
+      name: "Email Verification",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        code: { label: "Code", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.code) {
+          return null;
+        }
+
+        // Verify the code
+        const verificationToken = await prisma.verificationToken.findUnique({
+          where: {
+            identifier_token: {
+              identifier: credentials.email as string,
+              token: credentials.code as string,
+            },
+          },
+        });
+
+        if (!verificationToken || verificationToken.expires < new Date()) {
+          return null;
+        }
+
+        // Find or create user
+        let user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+        });
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email: credentials.email as string,
+              emailVerified: new Date(),
+            },
+          });
+
+          // Create personal organization
+          const orgName = `${credentials.email.split("@")[0]}'s Organization`;
+          const orgSlug = credentials.email
+            .split("@")[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-");
+
+          await prisma.organization.create({
+            data: {
+              name: orgName,
+              slug: orgSlug,
+              members: {
+                create: {
+                  userId: user.id,
+                  role: "ADMIN",
+                },
+              },
+            },
+          });
+        } else if (!user.emailVerified) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        }
+
+        // Delete used verification token
+        await prisma.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: credentials.email as string,
+              token: credentials.code as string,
+            },
+          },
+        });
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -223,6 +307,7 @@ export const authConfig = {
     error: "/auth/error",
   },
   session: {
-    strategy: "database" as const,
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 } satisfies NextAuthConfig;

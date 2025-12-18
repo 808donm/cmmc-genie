@@ -68,28 +68,26 @@ export function SignInForm({ invitationToken }: SignInFormProps) {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/email-auth/verify-code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, code }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Invalid verification code");
-      }
-
-      // Session cookie is set by the server
-      // Redirect to callback URL
+      // Use NextAuth's signIn with credentials provider
       const callbackUrl = invitationToken
         ? `/auth/accept-invitation?token=${invitationToken}`
         : "/dashboard";
 
-      // Force a hard redirect to ensure session is loaded
-      window.location.href = callbackUrl;
+      const result = await signIn("email-verification", {
+        email,
+        code,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error || "Invalid verification code");
+      }
+
+      // Redirect on success
+      if (result?.ok) {
+        window.location.href = callbackUrl;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to verify code");
     } finally {
