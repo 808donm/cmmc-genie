@@ -145,7 +145,7 @@ export default async function ClientDashboardPage() {
           Welcome back, {session.user.name || "there"}!
         </h1>
         <p className="mt-2 text-slate-600">
-          Here's an overview of your CMMC compliance progress
+          Here&apos;s an overview of your CMMC compliance progress
         </p>
       </div>
 
